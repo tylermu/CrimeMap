@@ -59,8 +59,17 @@ function dbRun(query, params) {
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    
-    res.status(200).type('json').send({}); // <-- you will need to change this
+    let sql = 'SELECT code, incident_type AS type FROM Codes ORDER BY code';
+    let params = [];
+    console.log(sql);
+    console.log(params);
+    dbSelect(sql, params)
+    .then((rows) => {
+        res.status(200).type('json').send(rows);
+    })
+    .catch((error) => {
+        res.status(500).type('txt').send(error);
+    })
 });
 
 // GET request handler for neighborhoods
