@@ -66,8 +66,16 @@ app.get('/codes', (req, res) => {
 // GET request handler for neighborhoods
 app.get('/neighborhoods', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    
-    res.status(200).type('json').send({}); // <-- you will need to change this
+    let sql = 'SELECT neighborhood, neighborhood_number AS id, neighborhood_name AS name FROM Neighborhoods';
+    let params = [];
+    dbSelect(sql, params)
+    .then((rows) => {
+        
+        res.status(200).type('json').send(rows);
+    })
+    .catch((err) => {
+        res.status(500).type('txt').send(err);
+    });
 });
 
 // GET request handler for crime incidents
