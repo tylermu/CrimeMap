@@ -75,7 +75,7 @@ app.get('/codes', (req, res) => {
 // GET request handler for neighborhoods
 app.get('/neighborhoods', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT neighborhood, neighborhood_number AS id, neighborhood_name AS name FROM Neighborhoods';
+    let sql = 'SELECT neighborhood_number AS id, neighborhood_name AS name FROM Neighborhoods ORDER BY id';
     let params = [];
     dbSelect(sql, params)
     .then((rows) => {
