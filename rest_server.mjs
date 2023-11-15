@@ -13,7 +13,7 @@ let app = express();
 app.use(express.json());
 
 /********************************************************************
- ***   DATABASE FUNCTIONS                                         *** 
+ ***   DATABASE FUNCTIONS                                         ***
  ********************************************************************/
 // Open SQLite3 database (in read-write mode)
 let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
@@ -25,7 +25,7 @@ let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
     }
 });
 
-// Create Promise for SQLite3 database SELECT query 
+// Create Promise for SQLite3 database SELECT query
 function dbSelect(query, params) {
     return new Promise((resolve, reject) => {
         db.all(query, params, (err, rows) => {
@@ -54,7 +54,7 @@ function dbRun(query, params) {
 }
 
 /********************************************************************
- ***   REST REQUEST HANDLERS                                      *** 
+ ***   REST REQUEST HANDLERS                                      ***
  ********************************************************************/
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
@@ -109,15 +109,40 @@ app.put('/new-incident', (req, res) => {
     res.status(200).type('txt').send('OK'); // <-- you may need to change this
 });
 
-// DELETE request handler for new crime incident
+// DELETE request handler for removing a crime incident
 app.delete('/remove-incident', (req, res) => {
-    console.log(req.body); // uploaded data
-    
-    res.status(200).type('txt').send('OK'); // <-- you may need to change this
+    const { case_number } = req.body; // Uploaded data containing case_number
+
+    if (!case_number) {
+        res.status(400).type('txt').send('Case number is missing.');
+        return;
+    }
+
+    const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
+    dbSelect(checkIfExistsQuery, [case_number])
+        .then((rows) => {
+            if (rows.length === 0) {
+                res.status(404).type('txt').send('Case number does not exist in the database.');
+                return;
+            }
+
+            const deleteQuery = 'DELETE FROM Incidents WHERE case_number = ?';
+            dbRun(deleteQuery, [case_number])
+                .then(() => {
+                    res.status(200).type('txt').send('Data removed successfully.');
+                })
+                .catch((error) => {
+                    res.status(500).type('txt').send(error);
+                });
+        })
+        .catch((error) => {
+            res.status(500).type('txt').send(error);
+        });
 });
 
+
 /********************************************************************
- ***   START SERVER                                               *** 
+ ***   START SERVER                                               ***
  ********************************************************************/
 // Start server - listen for client connections
 app.listen(port, () => {
