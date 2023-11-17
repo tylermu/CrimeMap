@@ -90,7 +90,7 @@ app.get('/neighborhoods', (req, res) => {
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT * FROM Incidents';
+    let sql = 'SELECT * FROM Incidents ORDER BY date_time DESC LIMIT 1000';
     let params = [];
     dbSelect(sql, params)
     .then((rows) => {
@@ -115,7 +115,6 @@ app.delete('/remove-incident', (req, res) => {
 
     if (!case_number) {
         res.status(400).type('txt').send('Case number is missing.');
-        return;
     }
 
     const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
@@ -123,7 +122,6 @@ app.delete('/remove-incident', (req, res) => {
         .then((rows) => {
             if (rows.length === 0) {
                 res.status(404).type('txt').send('Case number does not exist in the database.');
-                return;
             }
 
             const deleteQuery = 'DELETE FROM Incidents WHERE case_number = ?';
