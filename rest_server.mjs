@@ -90,7 +90,7 @@ app.get('/neighborhoods', (req, res) => {
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT * FROM Incidents ORDER BY date_time DESC LIMIT 1000';
+    let sql = 'SELECT case_number, date(date_time) AS date, time(date_time) AS time, code, incident, police_grid, neighborhood_number, block FROM Incidents ORDER BY date DESC, time DESC LIMIT 1000';
     let params = [];
     dbSelect(sql, params)
     .then((rows) => {
@@ -104,9 +104,30 @@ app.get('/incidents', (req, res) => {
 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
-    console.log(req.body); // uploaded data
-    
-    res.status(200).type('txt').send('OK'); // <-- you may need to change this
+    const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body; // Uploaded data containing case_number
+
+    const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
+    if (checkIfExistsQuery) {
+        res.status(400).type('txt').send('Case number already exists.');
+    }
+    dbSelect(checkIfExistsQuery, [case_number])
+        .then((rows) => {
+            if (rows.length === 0) {
+                res.status(404).type('txt').send('Case number does not exist in the database.');
+            }
+
+            const deleteQuery = 'DELETE FROM Incidents WHERE case_number = ?';
+            dbRun(deleteQuery, [case_number])
+                .then(() => {
+                    res.status(200).type('txt').send('Data removed successfully.');
+                })
+                .catch((error) => {
+                    res.status(500).type('txt').send(error);
+                });
+        })
+        .catch((error) => {
+            res.status(500).type('txt').send(error);
+        });
 });
 
 // DELETE request handler for removing a crime incident
