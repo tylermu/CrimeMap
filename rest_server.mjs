@@ -137,11 +137,151 @@ app.get('/neighborhoods', (req, res) => {
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT case_number, DATE(date_time) as date, TIME(date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents ORDER BY date_time DESC LIMIT 1000';
+    let sql = 'SELECT case_number, DATE(date_time) as date, TIME(date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents';
     let params = [];
+    let count = 0;
+    if(req.query.hasOwnProperty('start_date')) { //start date filter
+        let query = req.query.start_date.toString();
+        sql += ' WHERE date > ';
+        sql += "'" + query + "'";
+        count++;
+    } 
+    if (req.query.hasOwnProperty('end_date')) { //end date filter
+        let query = req.query.end_date
+        if (count == 0) {
+            sql += ' WHERE date <= '
+            sql += "'" + query + "'";
+            count++;
+        } else {
+            sql += " AND date <= ";
+            sql += "'" + query + "'";
+            count++;
+        }
+    }
+    if(req.query.hasOwnProperty('code')) { //code filter
+        if (count == 0) {
+            let count2 = 0;
+            let query = req.query.code.toString();
+            const MyArray = query.split(",");
+            sql += ' WHERE code IN (';
+            MyArray.forEach((item) => {
+                console.log(item);
+                if (!MyArray[count2+1]){
+                    sql += "?" + ")";
+                    params.push(item);
+                } else {
+                    sql += "?" + ",";
+                    params.push(item);
+                }
+                count2++;
+                count++;
+        });
+        } else {
+            let count2 = 0;
+            let query = req.query.code.toString();
+            const MyArray = query.split(",");
+            sql += ' AND code IN (';
+            MyArray.forEach((item) => {
+                console.log(item);
+                if (!MyArray[count2+1]){
+                    sql += "?" + ")";
+                    params.push(item);
+                } else {
+                    sql += "?" + ",";
+                    params.push(item);
+                }
+                count2++;
+                count++;
+        });
+        }
+    }
+
+    if(req.query.hasOwnProperty('grid')) { //grid filter
+        if (count == 0) {
+            let count2 = 0;
+            let query = req.query.grid.toString();
+            const MyArray = query.split(",");
+            sql += ' WHERE police_grid IN (';
+            MyArray.forEach((item) => {
+                console.log(item);
+                if (!MyArray[count2+1]){
+                    sql += "?" + ")";
+                    params.push(item);
+                } else {
+                    sql += "?" + ",";
+                    params.push(item);
+                }
+                count2++;
+                count++;
+        });
+        } else {
+            let count2 = 0;
+            let query = req.query.grid.toString();
+            const MyArray = query.split(",");
+            sql += ' AND police_grid IN (';
+            MyArray.forEach((item) => {
+                console.log(item);
+                if (!MyArray[count2+1]){
+                    sql += "?" + ")";
+                    params.push(item);
+                } else {
+                    sql += "?" + ",";
+                    params.push(item);
+                }
+                count2++;
+                count++;
+        });
+        }
+    }
+
+    if(req.query.hasOwnProperty('neighborhood')) { //neighborhood filter
+        if (count == 0) {
+            let count2 = 0;
+            let query = req.query.neighborhood.toString();
+            const MyArray = query.split(",");
+            sql += ' WHERE neighborhood_number IN (';
+            MyArray.forEach((item) => {
+                console.log(item);
+                if (!MyArray[count2+1]){
+                    sql += "?" + ")";
+                    params.push(item);
+                } else {
+                    sql += "?" + ",";
+                    params.push(item);
+                }
+                count2++;
+                count++;
+        });
+        } else {
+            let count2 = 0;
+            let query = req.query.neighborhood.toString();
+            const MyArray = query.split(",");
+            sql += ' AND neighborhood_number IN (';
+            MyArray.forEach((item) => {
+                console.log(item);
+                if (!MyArray[count2+1]){
+                    sql += "?" + ")";
+                    params.push(item);
+                } else {
+                    sql += "?" + ",";
+                    params.push(item);
+                }
+                count2++;
+                count++;
+        });
+        }
+    }
+    
+    if(req.query.hasOwnProperty('limit')) {
+        let query = req.query.limit.toString();
+        sql += " ORDER BY date_time DESC LIMIT " + query;
+    } else {
+        sql += " ORDER BY date_time DESC LIMIT 1000";
+    }
+    console.log(sql);
+    console.log(params);
     dbSelect(sql, params)
     .then((rows) => {
-        
         res.status(200).type('json').send(rows);
     })
     .catch((err) => {
