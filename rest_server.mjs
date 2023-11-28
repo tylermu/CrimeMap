@@ -104,7 +104,7 @@ app.get('/incidents', (req, res) => {
 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
-    const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body;
+    const { case_number, date_time, code, incident, police_grid, neighborhood_number, block } = req.body;
 
     const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
     dbSelect(checkIfExistsQuery, [case_number])
@@ -112,8 +112,8 @@ app.put('/new-incident', (req, res) => {
             if (rows.length > 0) {
                 res.status(500).type('txt').send('Case number already exists in the database.');
             } else {
-                const insertQuery = 'INSERT INTO Incidents (case_number, date, time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-                dbRun(insertQuery, [case_number, date, time, code, incident, police_grid, neighborhood_number, block])
+                const insertQuery = 'INSERT INTO Incidents (case_number, date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)';
+                dbRun(insertQuery, [case_number, date_time, code, incident, police_grid, neighborhood_number, block])
                     .then(() => {
                         res.status(200).type('txt').send('Incident data inserted successfully.');
                     })
