@@ -289,6 +289,7 @@ app.get('/incidents', (req, res) => {
     });
 });
 //curl -X PUT "http://localhost:8000/new-incident" -H "Content-Type: application/json" -d "{\"case_number\": \"23200822\", \"date_time\": \"2023-11-01T04:58:00\", \"code\":\"9954\", \"incident\":\"Proactive Police Visit\", \"police_grid\": \"49\", \"neighborhood_number\": \"6\", \"block\": \"LAWSON AVE W AND KENT\"}"
+
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
     const { case_number, date_time, code, incident, police_grid, neighborhood_number, block } = req.body;
