@@ -13,7 +13,7 @@ let app = express();
 app.use(express.json());
 
 /********************************************************************
- ***   DATABASE FUNCTIONS                                         *** 
+ ***   DATABASE FUNCTIONS                                         ***
  ********************************************************************/
 // Open SQLite3 database (in read-write mode)
 let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
@@ -25,7 +25,7 @@ let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
     }
 });
 
-// Create Promise for SQLite3 database SELECT query 
+// Create Promise for SQLite3 database SELECT query
 function dbSelect(query, params) {
     return new Promise((resolve, reject) => {
         db.all(query, params, (err, rows) => {
@@ -54,7 +54,7 @@ function dbRun(query, params) {
 }
 
 /********************************************************************
- ***   REST REQUEST HANDLERS                                      *** 
+ ***   REST REQUEST HANDLERS                                      ***
  ********************************************************************/
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
@@ -137,7 +137,7 @@ app.get('/neighborhoods', (req, res) => {
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT * FROM Incidents';
+    let sql = 'SELECT * FROM Incidents ORDER BY date_time DESC LIMIT 1000';
     let params = [];
     dbSelect(sql, params)
     .then((rows) => {
@@ -151,20 +151,61 @@ app.get('/incidents', (req, res) => {
 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
-    console.log(req.body); // uploaded data
-    
-    res.status(200).type('txt').send('OK'); // <-- you may need to change this
+    const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body;
+
+    const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
+    dbSelect(checkIfExistsQuery, [case_number])
+        .then((rows) => {
+            if (rows.length > 0) {
+                res.status(500).type('txt').send('Case number already exists in the database.');
+            } else {
+                const insertQuery = 'INSERT INTO Incidents (case_number, date, time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+                dbRun(insertQuery, [case_number, date, time, code, incident, police_grid, neighborhood_number, block])
+                    .then(() => {
+                        res.status(200).type('txt').send('Incident data inserted successfully.');
+                    })
+                    .catch((error) => {
+                        res.status(500).type('txt').send(error);
+                    });
+            }
+        })
+        .catch((error) => {
+            res.status(500).type('txt').send(error);
+        });
 });
 
-// DELETE request handler for new crime incident
+// DELETE request handler for removing a crime incident
 app.delete('/remove-incident', (req, res) => {
-    console.log(req.body); // uploaded data
-    
-    res.status(200).type('txt').send('OK'); // <-- you may need to change this
+    const { case_number } = req.body; // Uploaded data containing case_number
+
+    if (!case_number) {
+        res.status(400).type('txt').send('Case number is missing.');
+    }
+
+    const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
+    dbSelect(checkIfExistsQuery, [case_number])
+        .then((rows) => {
+            if (rows.length === 0) {
+                res.status(404).type('txt').send('Case number does not exist in the database.');
+            }
+
+            const deleteQuery = 'DELETE FROM Incidents WHERE case_number = ?';
+            dbRun(deleteQuery, [case_number])
+                .then(() => {
+                    res.status(200).type('txt').send('Data removed successfully.');
+                })
+                .catch((error) => {
+                    res.status(500).type('txt').send(error);
+                });
+        })
+        .catch((error) => {
+            res.status(500).type('txt').send(error);
+        });
 });
+
 
 /********************************************************************
- ***   START SERVER                                               *** 
+ ***   START SERVER                                               ***
  ********************************************************************/
 // Start server - listen for client connections
 app.listen(port, () => {
