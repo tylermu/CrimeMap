@@ -153,24 +153,17 @@ app.get('/incidents', (req, res) => {
 app.put('/new-incident', (req, res) => {
     const { case_number, date_time, code, incident, police_grid, neighborhood_number, block } = req.body;
 
-    const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
-    dbSelect(checkIfExistsQuery, [case_number])
-        .then((rows) => {
-            if (rows.length > 0) {
-                res.status(500).type('txt').send('Case number already exists in the database.');
-            } else {
-                const insertQuery = 'INSERT INTO Incidents (case_number, date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)';
-                dbRun(insertQuery, [case_number, date_time, code, incident, police_grid, neighborhood_number, block])
-                    .then(() => {
-                        res.status(200).type('txt').send('Incident data inserted successfully.');
-                    })
-                    .catch((error) => {
-                        res.status(500).type('txt').send(error);
-                    });
-            }
+    const insertQuery = 'INSERT INTO Incidents (case_number, date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    dbRun(insertQuery, [case_number, date_time, code, incident, police_grid, neighborhood_number, block])
+        .then(() => {
+            res.status(200).type('txt').send('Incident data inserted successfully.');
         })
         .catch((error) => {
-            res.status(500).type('txt').send(error);
+            if (error.message.includes('UNIQUE constraint failed')) {
+                res.status(500).type('txt').send('Case number already exists in the database.');
+            } else {
+                res.status(500).type('txt').send(error);
+            }
         });
 });
 
