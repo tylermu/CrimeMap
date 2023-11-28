@@ -59,12 +59,35 @@ function dbRun(query, params) {
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT code, incident_type AS type FROM Codes ORDER BY code';
+    let sql = 'SELECT code, incident_type AS type FROM Codes';
     let params = [];
-    console.log(sql);
-    console.log(params);
+    let count = 0;
+    if(req.query.hasOwnProperty('code')) {
+        let query = req.query.code.toString();
+        const MyArray = query.split(",");
+        sql += ' WHERE code IN (';
+        MyArray.forEach((item) => {
+            console.log(item);
+            if (!MyArray[count+1]){
+                sql += "?" + ")";
+                params.push(item);
+            } else {
+                sql += "?" + ",";
+                params.push(item);
+            }
+            count++;
+        });
+        console.log(sql)
+        console.log(params) 
+        sql += " ORDER BY code";
+    } else {
+        sql += " ORDER BY code";
+    }
+
     dbSelect(sql, params)
     .then((rows) => {
+        console.log(sql)
+        console.log(params)
         res.status(200).type('json').send(rows);
     })
     .catch((error) => {
@@ -75,22 +98,46 @@ app.get('/codes', (req, res) => {
 // GET request handler for neighborhoods
 app.get('/neighborhoods', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT neighborhood_number AS id, neighborhood_name AS name FROM Neighborhoods ORDER BY id';
+    let sql = 'SELECT neighborhood_number AS id, neighborhood_name AS name FROM Neighborhoods';
     let params = [];
+    let count = 0;
+    if(req.query.hasOwnProperty('id')) {
+        let query = req.query.id.toString();
+        const MyArray = query.split(",");
+        sql += ' WHERE id IN (';
+        MyArray.forEach((item) => {
+            console.log(item);
+            if (!MyArray[count+1]){
+                sql += "?" + ")";
+                params.push(item);
+            } else {
+                sql += "?" + ",";
+                params.push(item);
+            }
+            count++;
+        });
+        console.log(sql)
+        console.log(params) 
+        sql += " ORDER BY id";
+    } else {
+        sql += " ORDER BY id";
+    }
+
     dbSelect(sql, params)
     .then((rows) => {
-        
+        console.log(sql)
+        console.log(params)
         res.status(200).type('json').send(rows);
     })
-    .catch((err) => {
-        res.status(500).type('txt').send(err);
-    });
+    .catch((error) => {
+        res.status(500).type('txt').send(error);
+    })
 });
 
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT case_number, date(date_time) AS date, time(date_time) AS time, code, incident, police_grid, neighborhood_number, block FROM Incidents ORDER BY date DESC, time DESC LIMIT 1000';
+    let sql = 'SELECT case_number, DATE(date_time) as date, TIME(date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents ORDER BY date_time DESC LIMIT 1000';
     let params = [];
     dbSelect(sql, params)
     .then((rows) => {
@@ -104,26 +151,23 @@ app.get('/incidents', (req, res) => {
 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
-    const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body; // Uploaded data containing case_number
+    const { case_number, date_time, code, incident, police_grid, neighborhood_number, block } = req.body;
 
     const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
-    if (checkIfExistsQuery) {
-        res.status(400).type('txt').send('Case number already exists.');
-    }
     dbSelect(checkIfExistsQuery, [case_number])
         .then((rows) => {
-            if (rows.length === 0) {
-                res.status(404).type('txt').send('Case number does not exist in the database.');
+            if (rows.length > 0) {
+                res.status(500).type('txt').send('Case number already exists in the database.');
+            } else {
+                const insertQuery = 'INSERT INTO Incidents (case_number, date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)';
+                dbRun(insertQuery, [case_number, date_time, code, incident, police_grid, neighborhood_number, block])
+                    .then(() => {
+                        res.status(200).type('txt').send('Incident data inserted successfully.');
+                    })
+                    .catch((error) => {
+                        res.status(500).type('txt').send(error);
+                    });
             }
-
-            const deleteQuery = 'DELETE FROM Incidents WHERE case_number = ?';
-            dbRun(deleteQuery, [case_number])
-                .then(() => {
-                    res.status(200).type('txt').send('Data removed successfully.');
-                })
-                .catch((error) => {
-                    res.status(500).type('txt').send(error);
-                });
         })
         .catch((error) => {
             res.status(500).type('txt').send(error);
