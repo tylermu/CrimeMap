@@ -137,7 +137,7 @@ app.get('/neighborhoods', (req, res) => {
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    let sql = 'SELECT * FROM Incidents ORDER BY date_time DESC LIMIT 1000';
+    let sql = 'SELECT case_number, DATE(date_time) as date, TIME(date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents ORDER BY date_time DESC LIMIT 1000';
     let params = [];
     dbSelect(sql, params)
     .then((rows) => {
