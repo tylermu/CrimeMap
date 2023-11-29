@@ -1,20 +1,20 @@
 import * as path from 'node:path';
 import * as url from 'node:url';
-
+ 
 import { default as express } from 'express';
 import { default as sqlite3 } from 'sqlite3';
-
+ 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const db_filename = path.join(__dirname, 'db', 'stpaul_crime.sqlite3');
-
+ 
 const port = 8000;
-
+ 
 let app = express();
 app.use(express.json());
-
+ 
 /********************************************************************
- ***   DATABASE FUNCTIONS                                         ***
- ********************************************************************/
+***   DATABASE FUNCTIONS                                         ***
+********************************************************************/
 // Open SQLite3 database (in read-write mode)
 let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
@@ -24,7 +24,7 @@ let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
         console.log('Now connected to ' + path.basename(db_filename));
     }
 });
-
+ 
 // Create Promise for SQLite3 database SELECT query
 function dbSelect(query, params) {
     return new Promise((resolve, reject) => {
@@ -38,7 +38,7 @@ function dbSelect(query, params) {
         });
     });
 }
-
+ 
 // Create Promise for SQLite3 database INSERT or DELETE query
 function dbRun(query, params) {
     return new Promise((resolve, reject) => {
@@ -52,10 +52,10 @@ function dbRun(query, params) {
         });
     });
 }
-
+ 
 /********************************************************************
- ***   REST REQUEST HANDLERS                                      ***
- ********************************************************************/
+***   REST REQUEST HANDLERS                                      ***
+********************************************************************/
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
@@ -78,12 +78,12 @@ app.get('/codes', (req, res) => {
             count++;
         });
         console.log(sql)
-        console.log(params) 
+        console.log(params)
         sql += " ORDER BY code";
     } else {
         sql += " ORDER BY code";
     }
-
+ 
     dbSelect(sql, params)
     .then((rows) => {
         console.log(sql)
@@ -94,7 +94,7 @@ app.get('/codes', (req, res) => {
         res.status(500).type('txt').send(error);
     })
 });
-
+ 
 // GET request handler for neighborhoods
 app.get('/neighborhoods', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
@@ -117,12 +117,12 @@ app.get('/neighborhoods', (req, res) => {
             count++;
         });
         console.log(sql)
-        console.log(params) 
+        console.log(params)
         sql += " ORDER BY id";
     } else {
         sql += " ORDER BY id";
     }
-
+ 
     dbSelect(sql, params)
     .then((rows) => {
         console.log(sql)
@@ -133,7 +133,7 @@ app.get('/neighborhoods', (req, res) => {
         res.status(500).type('txt').send(error);
     })
 });
-
+ 
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
@@ -145,7 +145,7 @@ app.get('/incidents', (req, res) => {
         sql += ' WHERE date > ';
         sql += "'" + query + "'";
         count++;
-    } 
+    }
     if (req.query.hasOwnProperty('end_date')) { //end date filter
         let query = req.query.end_date
         if (count == 0) {
@@ -195,7 +195,7 @@ app.get('/incidents', (req, res) => {
         });
         }
     }
-
+ 
     if(req.query.hasOwnProperty('grid')) { //grid filter
         if (count == 0) {
             let count2 = 0;
@@ -233,7 +233,7 @@ app.get('/incidents', (req, res) => {
         });
         }
     }
-
+ 
     if(req.query.hasOwnProperty('neighborhood')) { //neighborhood filter
         if (count == 0) {
             let count2 = 0;
@@ -271,7 +271,7 @@ app.get('/incidents', (req, res) => {
         });
         }
     }
-    
+   
     if(req.query.hasOwnProperty('limit')) {
         let query = req.query.limit.toString();
         sql += " ORDER BY date_time DESC LIMIT " + query;
@@ -289,13 +289,14 @@ app.get('/incidents', (req, res) => {
     });
 });
 //curl -X PUT "http://localhost:8000/new-incident" -H "Content-Type: application/json" -d "{\"case_number\": \"23200822\", \"date\": \"2023-11-01\", \"time\": \"04:58:00\", \"code\":\"9954\", \"incident\":\"Proactive Police Visit\", \"police_grid\": \"49\", \"neighborhood_number\": \"6\", \"block\": \"LAWSON AVE W AND KENT\"}"
-
+ 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
     const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body;
-
-    const insertQuery = "INSERT INTO Incidents (case_number, DATETIME(DATE(date) || ' ' || TIME(time)) AS date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    dbRun(insertQuery, [case_number, date, time, code, incident, police_grid, neighborhood_number, block])
+    const dateTime = `${date} ${time}`;
+ 
+    const insertQuery = 'INSERT INTO Incidents (case_number, date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    dbRun(insertQuery, [case_number, dateTime, code, incident, police_grid, neighborhood_number, block])
         .then(() => {
             res.status(200).type('txt').send('Incident data inserted successfully.');
         })
@@ -307,22 +308,23 @@ app.put('/new-incident', (req, res) => {
             }
         });
 });
-
+ 
+ 
 // DELETE request handler for removing a crime incident
 app.delete('/remove-incident', (req, res) => {
     const { case_number } = req.body; // Uploaded data containing case_number
-
+ 
     if (!case_number) {
         res.status(400).type('txt').send('Case number is missing.');
     }
-
+ 
     const checkIfExistsQuery = 'SELECT * FROM Incidents WHERE case_number = ?';
     dbSelect(checkIfExistsQuery, [case_number])
         .then((rows) => {
             if (rows.length === 0) {
                 res.status(404).type('txt').send('Case number does not exist in the database.');
             }
-
+ 
             const deleteQuery = 'DELETE FROM Incidents WHERE case_number = ?';
             dbRun(deleteQuery, [case_number])
                 .then(() => {
@@ -336,11 +338,11 @@ app.delete('/remove-incident', (req, res) => {
             res.status(500).type('txt').send(error);
         });
 });
-
-
+ 
+ 
 /********************************************************************
- ***   START SERVER                                               ***
- ********************************************************************/
+***   START SERVER                                               ***
+********************************************************************/
 // Start server - listen for client connections
 app.listen(port, () => {
     console.log('Now listening on port ' + port);
