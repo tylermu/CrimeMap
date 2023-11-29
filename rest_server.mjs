@@ -294,7 +294,7 @@ app.get('/incidents', (req, res) => {
 app.put('/new-incident', (req, res) => {
     const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body;
 
-    const insertQuery = "INSERT INTO Incidents (case_number, CONVERT(DATETIME, date + ' ' + time, 120) AS date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const insertQuery = "INSERT INTO Incidents (case_number, DATETIME(DATE(date) || ' ' || TIME(time)) AS date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)";
     dbRun(insertQuery, [case_number, date, time, code, incident, police_grid, neighborhood_number, block])
         .then(() => {
             res.status(200).type('txt').send('Incident data inserted successfully.');
