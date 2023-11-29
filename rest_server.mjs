@@ -288,14 +288,14 @@ app.get('/incidents', (req, res) => {
         res.status(500).type('txt').send(err);
     });
 });
-//curl -X PUT "http://localhost:8000/new-incident" -H "Content-Type: application/json" -d "{\"case_number\": \"23200822\", \"date_time\": \"2023-11-01T04:58:00\", \"code\":\"9954\", \"incident\":\"Proactive Police Visit\", \"police_grid\": \"49\", \"neighborhood_number\": \"6\", \"block\": \"LAWSON AVE W AND KENT\"}"
+//curl -X PUT "http://localhost:8000/new-incident" -H "Content-Type: application/json" -d "{\"case_number\": \"23200822\", \"date\": \"2023-11-01\", \"time\": \"04:58:00\", \"code\":\"9954\", \"incident\":\"Proactive Police Visit\", \"police_grid\": \"49\", \"neighborhood_number\": \"6\", \"block\": \"LAWSON AVE W AND KENT\"}"
 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
-    const { case_number, date_time, code, incident, police_grid, neighborhood_number, block } = req.body;
+    const { case_number, date, time, code, incident, police_grid, neighborhood_number, block } = req.body;
 
-    const insertQuery = 'INSERT INTO Incidents (case_number, date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    dbRun(insertQuery, [case_number, date_time, code, incident, police_grid, neighborhood_number, block])
+    const insertQuery = "INSERT INTO Incidents (case_number, CONVERT(DATETIME, date + ' ' + time, 120) AS date_time, code, incident, police_grid, neighborhood_number, block) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    dbRun(insertQuery, [case_number, date, time, code, incident, police_grid, neighborhood_number, block])
         .then(() => {
             res.status(200).type('txt').send('Incident data inserted successfully.');
         })
