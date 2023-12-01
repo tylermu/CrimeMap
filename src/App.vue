@@ -1,157 +1,137 @@
 <script setup>
-import { reactive, ref } from 'vue'
-import { fetchWeatherApi } from 'openmeteo'; // https://open-meteo.com/en/docs
+import { reactive, ref, onMounted } from 'vue'
 
-const open_mereo_url = "https://api.open-meteo.com/v1/forecast";
-
-// add variables to our 'model'
-let latitude = ref(44.9407146);
-let longitude = ref(-93.1907503);
-let num_days = ref(1);
-let forecast = reactive([]);
-
-// helper function for creating an array with values at regular intervals
-function range(start, stop, step) {
-	return Array.from({ length: (stop - start) / step }, (_, i) => start + i * step);
-}
-
-// get cardinal direction from direction (in degrees)
-function getCardinalDirection(direction) {
-    let cardinal = 'E';
-    if (direction >= 45 && direction < 135) {
-        cardinal = 'N';
+let crime_url = ref('');
+let dialog_err = ref(false);
+let map = reactive(
+    {
+        leaflet: null,
+        center: {
+            lat: 44.955139,
+            lng: -93.102222,
+            address: ''
+        },
+        zoom: 12,
+        bounds: {
+            nw: {lat: 45.008206, lng: -93.217977},
+            se: {lat: 44.883658, lng: -92.993787}
+        },
+        neighborhood_markers: [
+            {location: [44.942068, -93.020521], marker: null},
+            {location: [44.977413, -93.025156], marker: null},
+            {location: [44.931244, -93.079578], marker: null},
+            {location: [44.956192, -93.060189], marker: null},
+            {location: [44.978883, -93.068163], marker: null},
+            {location: [44.975766, -93.113887], marker: null},
+            {location: [44.959639, -93.121271], marker: null},
+            {location: [44.947700, -93.128505], marker: null},
+            {location: [44.930276, -93.119911], marker: null},
+            {location: [44.982752, -93.147910], marker: null},
+            {location: [44.963631, -93.167548], marker: null},
+            {location: [44.973971, -93.197965], marker: null},
+            {location: [44.949043, -93.178261], marker: null},
+            {location: [44.934848, -93.176736], marker: null},
+            {location: [44.913106, -93.170779], marker: null},
+            {location: [44.937705, -93.136997], marker: null},
+            {location: [44.949203, -93.093739], marker: null}
+        ]
     }
-    else if (direction >= 135 && direction < 225) {
-        cardinal = 'W';
-    }
-    else if (direction >= 225 && direction < 315) {
-        cardinal = 'S';
-    }
-    return cardinal;
-}
+);
 
-// callback for initiating request for getting weather forecast
-function getWeatherForcast() {
-    // use 'latitude' and 'longitude' values from our model
-    let params = {
-        latitude: latitude.value,
-        longitude: longitude.value,
-        hourly: "temperature_2m,wind_speed_10m,wind_direction_10m,weather_code",
-        temperature_unit: "fahrenheit",
-        wind_speed_unit: "mph",
-        forecast_days: num_days.value
-    };
+// Vue callback for once <template> HTML has been added to web page
+onMounted(() => {
+    // Create Leaflet map (set bounds and valied zoom levels)
+    map.leaflet = L.map('leafletmap').setView([map.center.lat, map.center.lng], map.zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        minZoom: 11,
+        maxZoom: 18
+    }).addTo(map.leaflet);
+    map.leaflet.setMaxBounds([[44.883658, -93.217977], [45.008206, -92.993787]]);
 
-    fetchWeatherApi(open_mereo_url, params)
-    .then((data) => {
-        let hourly = data[0].hourly();
-        let utc_offset = data[0].utcOffsetSeconds();
-
-        // create array of times (in local time zone)
-        let times = range(Number(hourly.time()), Number(hourly.timeEnd()), hourly.interval())
-                    .map((t) => {
-                        return new Date((t + utc_offset) * 1000);
-                    });
-
-        // get arrays of data (1 entry per time)
-        let temp = hourly.variables(0).valuesArray();
-        let wind_speed = hourly.variables(1).valuesArray();
-        let wind_dir = hourly.variables(2).valuesArray();
-        let weather_code = hourly.variables(3).valuesArray();
-
-        // clear out old data
-        //forecast = []; // <-- DON'T DO THIS (removes Vue reference since we assign new value to object)
-        forecast.splice(0, forecast.length);
-        // combine times and data into list of objects and store in 'forecast' variable in our model
-        times.forEach((time, index) => {
-            forecast.push({
-                time: time,
-                temperature: temp[index],
-                wind_speed: wind_speed[index],
-                wind_direction: wind_dir[index],
-                weather_code: weather_code[index]
-            });
+    // Get boundaries for St. Paul neighborhoods
+    let district_boundary = new L.geoJson();
+    district_boundary.addTo(map.leaflet);
+    fetch('data/StPaulDistrictCouncil.geojson')
+    .then((response) => {
+        return response.json();
+    })
+    .then((result) => {
+        result.features.forEach((value) => {
+            district_boundary.addData(value);
         });
     })
     .catch((error) => {
-        console.log(error);
+        console.log('Error:', error);
     });
+});
+
+
+// FUNCTIONS
+// Function called once user has entered REST API URL
+function initializeCrimes() {
+    // TODO: get code and neighborhood data
+    //       get initial 1000 crimes
+}
+
+// Function called when user presses 'OK' on dialog box
+function closeDialog() {
+    let dialog = document.getElementById('rest-dialog');
+    let url_input = document.getElementById('dialog-url');
+    if (crime_url.value !== '' && url_input.checkValidity()) {
+        dialog_err.value = false;
+        dialog.close();
+        initializeCrimes();
+    }
+    else {
+        dialog_err.value = true;
+    }
 }
 </script>
 
 <template>
-    <div class="ui-row">
-        <label>Latitude: </label><input class="space-right" type="text" v-model="latitude">
-        <label>Longitude: </label><input class="space-right" type="text" v-model="longitude">
-        <label>Number of Days: </label>
-        <select v-model="num_days">
-            <option name="1">1</option>
-            <option name="2">2</option>
-            <option name="3">3</option>
-            <option name="4">4</option>
-            <option name="5">5</option>
-            <option name="6">6</option>
-            <option name="7">7</option>
-        </select>
+    <dialog id="rest-dialog" open>
+        <h1 class="dialog-header">St. Paul Crime REST API</h1>
+        <label class="dialog-label">URL: </label>
+        <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url" placeholder="http://localhost:8000" />
+        <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
+        <br/>
+        <button class="button" type="button" @click="closeDialog">OK</button>
+    </dialog>
+    <div class="grid-container ">
+        <div class="grid-x grid-padding-x">
+            <div id="leafletmap" class="cell auto"></div>
+        </div>
     </div>
-    <!-- TODO: add another user input to specify number of days in requested forecast -->
-    <div class="ui-row">
-        <button type="button" @click="getWeatherForcast">Get Forecast</button>
-    </div>
-    <!-- TODO: modify list to table (one row per item in forecast) -->
-    <table v-if="forecast.length > 0">
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Temperature</th>
-                <th>Wind Speed</th>
-                <th>Wind Direction</th>
-                <th>Weather Code</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="item in forecast">
-                <td>{{ item.time }}</td>
-                <td>{{ item.temperature.toFixed(0) }}&deg;F</td>
-                <td>{{ item.wind_speed.toFixed(1) }} mph</td>
-                <td>{{ getCardinalDirection(item.wind_direction) }}</td>
-                <td>{{ item.weather_code }}</td>
-            </tr>
-        </tbody>
-    </table>
 </template>
 
-<style scoped>
-* {
+<style>
+#rest-dialog {
+    width: 20rem;
+    margin-top: 1rem;
+    z-index: 1000;
+}
+
+#leafletmap {
+    height: 500px;
+}
+
+.dialog-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.dialog-label {
     font-size: 1rem;
 }
 
-button {
-    background-color: #2360A1;
-    color: #FFFFFF;
-    border: 0;
-    box-shadow: none;
-    padding: 0.5rem 1rem;
-    cursor:pointer;
+.dialog-input {
+    font-size: 1rem;
+    width: 100%;
 }
 
-button:active {
-    background-color: #163E68;
-}
-
-table {
-    border-collapse: collapse;
-}
-
-th, td {
-    border: solid 1px #000000;
-}
-
-.ui-row {
-    margin: 1rem 0;
-}
-
-.space-right {
-    margin-right: 1rem;
+.dialog-error {
+    font-size: 1rem;
+    color: #D32323;
 }
 </style>
