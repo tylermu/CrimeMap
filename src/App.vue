@@ -131,10 +131,6 @@ function initializeCrimes() {
     })
     .then((data) => {
       map.crimes = data;
-      map.crimes.forEach((crime) => {
-            console.log(crime);
-          });
-
       // TODO: Handle crime data as needed (e.g., display markers on the map)
     })
     .catch((error) => {
@@ -212,8 +208,36 @@ function executeUpdateAndClose() {
         </div>
       </div>
     </div>
-  </template>
-  
+    <div>
+        <table>
+            <thead>
+                <tr>
+                <th>Case Number</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Code</th>
+                <th>Incident</th>
+                <th>Police Grid</th>
+                <th>Neighborhood Number</th>
+                <th>Block</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="crime in map.crimes" :key="crime.case_number">
+                    <td>{{ crime.case_number }}</td>
+                    <td>{{ crime.date }}</td>
+                    <td>{{ crime.time }}</td>
+                    <td>{{ crime.code }}</td>
+                    <td>{{ crime.incident }}</td>
+                    <td>{{ crime.police_grid }}</td>
+                    <td>{{ crime.neighborhood_number }}</td>
+                    <td>{{ crime.block }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</template>
+
 <style>
 #rest-dialog {
     width: 20rem;
