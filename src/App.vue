@@ -70,8 +70,22 @@ onMounted(() => {
 // FUNCTIONS
 // Function called once user has entered REST API URL
 function initializeCrimes() {
-    // TODO: get code and neighborhood data
-    //       get initial 1000 crimes
+    fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      map.crimes = data;
+
+      // TODO: Handle crime data as needed (e.g., display markers on the map)
+    })
+    .catch((error) => {
+      console.error('Error fetching crime data:', error);
+      dialog_err.value = true;
+    });
 }
 
 // Function called when user presses 'OK' on dialog box
@@ -102,6 +116,34 @@ function closeDialog() {
         <div class="grid-x grid-padding-x">
             <div id="leafletmap" class="cell auto"></div>
         </div>
+    </div>
+    <div>
+        <table>
+            <thead>
+                <tr>
+                <th>Case Number</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Code</th>
+                <th>Incident</th>
+                <th>Police Grid</th>
+                <th>Neighborhood Number</th>
+                <th>Block</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="crime in map.crimes" :key="crime.case_number">
+                    <td>{{ crime.case_number }}</td>
+                    <td>{{ crime.date }}</td>
+                    <td>{{ crime.time }}</td>
+                    <td>{{ crime.code }}</td>
+                    <td>{{ crime.incident }}</td>
+                    <td>{{ crime.police_grid }}</td>
+                    <td>{{ crime.neighborhood_number }}</td>
+                    <td>{{ crime.block }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </template>
 
