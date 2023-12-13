@@ -157,6 +157,21 @@ function closeDialog() {
         dialog_err.value = true;
     }
 }
+function closeLocationDialog() {
+    let locationDialog = document.getElementById('location-dialog');
+    locationDialog.close(); // Close the location dialog
+    initializeCrimes();
+}
+function openLocationDialog() {
+    let locationDialog = document.getElementById('location-dialog');
+    locationDialog.showModal(); // Show the location dialog
+}
+
+function executeUpdateAndClose() {
+    updateMap(); // Call the updateMap function
+    closeLocationDialog(); // Call the closeLocationDialog function
+}
+
 </script>
 
 <template>
@@ -197,8 +212,8 @@ function closeDialog() {
         </div>
       </div>
     </div>
-</template>
-
+  </template>
+  
 <style>
 #rest-dialog {
     width: 20rem;
