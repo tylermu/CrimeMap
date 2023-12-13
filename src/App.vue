@@ -261,8 +261,8 @@ console.log(neighborhoodMap)
             </tbody>
         </table>
     </div>
-</template>
-
+  </template>
+  
 <style>
 #rest-dialog {
     width: 20rem;
