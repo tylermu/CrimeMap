@@ -172,29 +172,6 @@ function executeUpdateAndClose() {
     closeLocationDialog(); // Call the closeLocationDialog function
 }
 
-
-const neighborhoodData = [
-  {"id":1,"name":"Conway/Battlecreek/Highwood"},
-  {"id":2,"name":"Greater East Side"},
-  {"id":3,"name":"West Side"},
-  {"id":4,"name":"Dayton's Bluff"},
-  {"id":5,"name":"Payne/Phalen"},
-  {"id":6,"name":"North End"},
-  {"id":7,"name":"Thomas/Dale(Frogtown)"},
-  {"id":8,"name":"Summit/University"},
-  {"id":9,"name":"West Seventh"},
-  {"id":10,"name":"Como"},
-  {"id":11,"name":"Hamline/Midway"},
-  {"id":12,"name":"St. Anthony"},
-  {"id":13,"name":"Union Park"},
-  {"id":14,"name":"Macalester-Groveland"},
-  {"id":15,"name":"Highland"},
-  {"id":16,"name":"Summit Hill"},
-  {"id":17,"name":"Capitol River"}
-];
-
-const neighborhoodMap = new Map(neighborhoodData.map(entry => [entry.id, entry.name]));
-console.log(neighborhoodMap)
 </script>
 
 <template>
@@ -235,34 +212,8 @@ console.log(neighborhoodMap)
         </div>
       </div>
     </div>
-    <div>
-        <table>
-            <thead>
-                <tr>
-                <th>Case Number</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Incident</th>
-                <th>Police Grid</th>
-                <th>Neighborhood</th>
-                <th>Block</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="crime in map.crimes" :key="crime.case_number">
-                    <td>{{ crime.case_number }}</td>
-                    <td>{{ crime.date }}</td>
-                    <td>{{ crime.time }}</td>
-                    <td>{{ crime.incident }}</td>
-                    <td>{{ crime.police_grid }}</td>
-                    <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
-                    <td>{{ crime.block }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</template>
-
+  </template>
+  
 <style>
 #rest-dialog {
     width: 20rem;
