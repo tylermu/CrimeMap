@@ -1,8 +1,9 @@
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue';
 
 let crime_url = ref('');
 let dialog_err = ref(false);
+let new_location = ref('')
 let map = reactive(
     {
         leaflet: null,
@@ -17,26 +18,60 @@ let map = reactive(
             se: {lat: 44.883658, lng: -92.993787}
         },
         neighborhood_markers: [
-            {location: [44.942068, -93.020521], marker: null},
-            {location: [44.977413, -93.025156], marker: null},
-            {location: [44.931244, -93.079578], marker: null},
-            {location: [44.956192, -93.060189], marker: null},
-            {location: [44.978883, -93.068163], marker: null},
-            {location: [44.975766, -93.113887], marker: null},
-            {location: [44.959639, -93.121271], marker: null},
-            {location: [44.947700, -93.128505], marker: null},
-            {location: [44.930276, -93.119911], marker: null},
-            {location: [44.982752, -93.147910], marker: null},
-            {location: [44.963631, -93.167548], marker: null},
-            {location: [44.973971, -93.197965], marker: null},
-            {location: [44.949043, -93.178261], marker: null},
-            {location: [44.934848, -93.176736], marker: null},
-            {location: [44.913106, -93.170779], marker: null},
-            {location: [44.937705, -93.136997], marker: null},
-            {location: [44.949203, -93.093739], marker: null}
+            {location: [44.942068, -93.020521], marker: null, number: 1},
+            {location: [44.977413, -93.025156], marker: null, number: 2},
+            {location: [44.931244, -93.079578], marker: null, number: 3},
+            {location: [44.956192, -93.060189], marker: null, number: 4},
+            {location: [44.978883, -93.068163], marker: null, number: 5},
+            {location: [44.975766, -93.113887], marker: null, number: 6},
+            {location: [44.959639, -93.121271], marker: null, number: 7},
+            {location: [44.947700, -93.128505], marker: null, number: 8},
+            {location: [44.930276, -93.119911], marker: null, number: 9},
+            {location: [44.982752, -93.147910], marker: null, number: 10},
+            {location: [44.963631, -93.167548], marker: null, number: 11},
+            {location: [44.973971, -93.197965], marker: null, number: 12},
+            {location: [44.949043, -93.178261], marker: null, number: 13},
+            {location: [44.934848, -93.176736], marker: null, number: 14},
+            {location: [44.913106, -93.170779], marker: null, number: 15},
+            {location: [44.937705, -93.136997], marker: null, number: 16},
+            {location: [44.949203, -93.093739], marker: null, number: 17}
         ]
     }
 );
+async function updateMap() {
+    const location = new_location.value.trim(); // Get the entered location
+
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const { lat, lon, display_name } = data[0];
+
+            map.leaflet.setView([lat, lon], 15); // Set the view to the entered location with a zoom level of 15
+
+            // Create a marker at the entered location
+            const marker = L.marker([lat, lon]).addTo(map.leaflet);
+            marker.bindPopup(display_name).openPopup();
+        } else {
+            console.log('Location not found');
+        }
+    } catch (error) {
+        console.error('Error fetching location:', error);
+    }
+}
+
+
+
+
+// Function to check if coordinates are within St. Paul's bounds
+function checkBounds(lat, lon) {
+    return true;
+}
 
 // Vue callback for once <template> HTML has been added to web page
 onMounted(() => {
@@ -64,6 +99,23 @@ onMounted(() => {
     .catch((error) => {
         console.log('Error:', error);
     });
+    map.neighborhood_markers.forEach(neighborhood => {
+        const { location, number } = neighborhood;
+        const marker = L.marker(location).addTo(map.leaflet);
+        marker.bindPopup(`Neighborhood ${number}`).openPopup();
+        neighborhood.marker = marker;
+        
+    });
+      // Listen for the moveend event on the Leaflet map
+        map.leaflet.on('moveend', updateLocation);
+
+    function updateLocation() {
+  // Get the map's center coordinates after panning/zooming
+        const center = map.leaflet.getCenter();
+
+  // Update the location input with the new coordinates
+        new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
+}
 });
 
 
@@ -98,79 +150,70 @@ function closeDialog() {
     if (crime_url.value !== '' && url_input.checkValidity()) {
         dialog_err.value = false;
         dialog.close();
+        openLocationDialog()
         initializeCrimes();
     }
     else {
         dialog_err.value = true;
     }
 }
+function closeLocationDialog() {
+    let locationDialog = document.getElementById('location-dialog');
+    locationDialog.close(); // Close the location dialog
+    initializeCrimes();
+}
+function openLocationDialog() {
+    let locationDialog = document.getElementById('location-dialog');
+    locationDialog.showModal(); // Show the location dialog
+}
 
-const neighborhoodData = [
-  {"id":1,"name":"Conway/Battlecreek/Highwood"},
-  {"id":2,"name":"Greater East Side"},
-  {"id":3,"name":"West Side"},
-  {"id":4,"name":"Dayton's Bluff"},
-  {"id":5,"name":"Payne/Phalen"},
-  {"id":6,"name":"North End"},
-  {"id":7,"name":"Thomas/Dale(Frogtown)"},
-  {"id":8,"name":"Summit/University"},
-  {"id":9,"name":"West Seventh"},
-  {"id":10,"name":"Como"},
-  {"id":11,"name":"Hamline/Midway"},
-  {"id":12,"name":"St. Anthony"},
-  {"id":13,"name":"Union Park"},
-  {"id":14,"name":"Macalester-Groveland"},
-  {"id":15,"name":"Highland"},
-  {"id":16,"name":"Summit Hill"},
-  {"id":17,"name":"Capitol River"}
-];
+function executeUpdateAndClose() {
+    updateMap(); // Call the updateMap function
+    closeLocationDialog(); // Call the closeLocationDialog function
+}
 
-const neighborhoodMap = new Map(neighborhoodData.map(entry => [entry.id, entry.name]));
-console.log(neighborhoodMap)
 </script>
 
 <template>
-    <dialog id="rest-dialog" open>
-        <h1 class="dialog-header">St. Paul Crime REST API</h1>
-        <label class="dialog-label">URL: </label>
-        <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url" placeholder="http://localhost:8000" />
-        <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
-        <br/>
-        <button class="button" type="button" @click="closeDialog">OK</button>
-    </dialog>
-    <div class="grid-container ">
-        <div class="grid-x grid-padding-x">
-            <div id="leafletmap" class="cell auto"></div>
-        </div>
-    </div>
     <div>
-        <table>
-            <thead>
-                <tr>
-                <th>Case Number</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Incident</th>
-                <th>Police Grid</th>
-                <th>Neighborhood</th>
-                <th>Block</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="crime in map.crimes" :key="crime.case_number">
-                    <td>{{ crime.case_number }}</td>
-                    <td>{{ crime.date }}</td>
-                    <td>{{ crime.time }}</td>
-                    <td>{{ crime.incident }}</td>
-                    <td>{{ crime.police_grid }}</td>
-                    <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
-                    <td>{{ crime.block }}</td>
-                </tr>
-            </tbody>
-        </table>
+      <!-- Fixed Search Bar -->
+      <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
+        <input
+          id="dialog-location"
+          class="dialog-input"
+          type="text"
+          v-model="new_location"
+          placeholder="Enter location"
+          style="width: calc(100% - 100px);"
+        />
+        <button class="button" type="button" style="float: right; margin-right: 10px; margin-top: 5px;" @click="executeUpdateAndClose">Go</button>
+      </div>
+  
+      <!-- Rest of your content -->
+      <div style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
+        <dialog id="rest-dialog" open>
+          <h1 class="dialog-header">St. Paul Crime REST API</h1>
+          <label class="dialog-label">URL: </label>
+          <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url" placeholder="http://localhost:8000" />
+          <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
+          <br/>
+          <button class="button" type="button" @click="closeDialog">OK</button>
+        </dialog>
+        <dialog id="location-dialog">
+          <h1 class="dialog-header">Enter Location</h1>
+          <label class="dialog-label">Location: </label>
+          <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location" />
+          <button class="button" type="button" @click="executeUpdateAndClose">Go</button> <!-- Call executeUpdateAndClose method -->
+        </dialog>
+        <div class="grid-container">
+          <div class="grid-x grid-padding-x">
+            <div id="leafletmap" class="cell auto"></div>
+          </div>
+        </div>
+      </div>
     </div>
-</template>
-
+  </template>
+  
 <style>
 #rest-dialog {
     width: 20rem;
