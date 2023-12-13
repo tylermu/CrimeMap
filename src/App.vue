@@ -122,8 +122,25 @@ onMounted(() => {
 // FUNCTIONS
 // Function called once user has entered REST API URL
 function initializeCrimes() {
-    // TODO: get code and neighborhood data
-    //       get initial 1000 crimes
+    fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      map.crimes = data;
+      map.crimes.forEach((crime) => {
+            console.log(crime);
+          });
+
+      // TODO: Handle crime data as needed (e.g., display markers on the map)
+    })
+    .catch((error) => {
+      console.error('Error fetching crime data:', error);
+      dialog_err.value = true;
+    });
 }
 
 // Function called when user presses 'OK' on dialog box
@@ -139,20 +156,6 @@ function closeDialog() {
     else {
         dialog_err.value = true;
     }
-}
-function closeLocationDialog() {
-    let locationDialog = document.getElementById('location-dialog');
-    locationDialog.close(); // Close the location dialog
-    initializeCrimes();
-}
-function openLocationDialog() {
-    let locationDialog = document.getElementById('location-dialog');
-    locationDialog.showModal(); // Show the location dialog
-}
-
-function executeUpdateAndClose() {
-    updateMap(); // Call the updateMap function
-    closeLocationDialog(); // Call the closeLocationDialog function
 }
 </script>
 
@@ -194,8 +197,8 @@ function executeUpdateAndClose() {
         </div>
       </div>
     </div>
-  </template>
-  
+</template>
+
 <style>
 #rest-dialog {
     width: 20rem;
