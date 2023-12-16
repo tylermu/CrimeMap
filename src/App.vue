@@ -132,26 +132,26 @@ onMounted(() => {
 });
 
 function updateNeighborhoodCrimeCount() {
-    const neighborhoodCountMap = new Map();
+  const neighborhoodCountMap = new Map();
 
-    // Count crimes per neighborhood
-    map.crimes.forEach(crime => {
-        const neighborhoodNumber = crime.neighborhood_number;
-        if (neighborhoodCountMap.has(neighborhoodNumber)) {
-            neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
-        } else {
-            neighborhoodCountMap.set(neighborhoodNumber, 1);
-        }
-    });
+  // Count crimes per neighborhood
+  map.crimes.forEach(crime => {
+    const neighborhoodNumber = crime.neighborhood_number;
+    if (neighborhoodCountMap.has(neighborhoodNumber)) {
+      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+    } else {
+      neighborhoodCountMap.set(neighborhoodNumber, 1);
+    }
+  });
 
-    // Update the number of crimes for each neighborhood marker
-    map.neighborhood_markers.forEach(marker => {
-        const count = neighborhoodCountMap.get(marker.number);
-        marker.crimes = count || 0;
-        if (marker.marker) {
-            marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
-        }
-    });
+  // Update the number of crimes for each neighborhood marker
+  map.neighborhood_markers.forEach(marker => {
+    const count = neighborhoodCountMap.get(marker.number);
+    marker.crimes = count || 0;
+    if (marker.marker) {
+      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+    }
+  });
 }
 
 // FUNCTIONS
@@ -238,29 +238,6 @@ function executeUpdateAndClose() {
     closeLocationDialog(); // Call the closeLocationDialog function
 }
 
-// Function to determine the row background color based on incident type
-const getIncidentType = (incidentType) => {
-    switch (incidentType) {
-        case "Simple Assault Dom.":
-        case "Agg. Assault Dom.":
-        case "HOMICIDE":
-        case "Rape":
-        case "Attempt":
-        case "Agg. Assault":
-        case "Rape, By Force":
-            return "violent-crime";
-        case "Robbery":
-        case "Theft":
-        case "Auto Theft":
-        case "Larceny":
-        case "Burglary":
-        case "Shoplifting":
-        case "Criminal Damage":
-            return "property-crime";
-        default:
-            return "other";
-    }
-};
 
 const neighborhoodData = [
     { "id": 1, "name": "Conway/Battlecreek/Highwood" },
@@ -465,14 +442,6 @@ const submitNewIncident = async () => {
     </div>
 </template>
 <style>
-#violent-crime {
-    background-color: rgb(255, 136, 136);
-}
-
-#property-crime {
-    background-color: rgb(255, 222, 139);
-}
-
 #rest-dialog {
     width: 20rem;
     margin-top: 1rem;
