@@ -77,7 +77,7 @@ async function updateTable() {
     map.neighborhood_markers.forEach((each) => {
         const { location, number, marker } = each;
 
-        if (map.bounds.se.lat < location[0]  && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
+        if (map.bounds.se.lat < location[0] && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
             query.push(number);
             console.log(number + " is in view");
         }
@@ -124,7 +124,7 @@ onMounted(() => {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
         initializeCrimes(); //On map move, update database
-        
+
 
         // Update the location input with the new coordinates
         new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
@@ -132,26 +132,26 @@ onMounted(() => {
 });
 
 function updateNeighborhoodCrimeCount() {
-  const neighborhoodCountMap = new Map();
+    const neighborhoodCountMap = new Map();
 
-  // Count crimes per neighborhood
-  map.crimes.forEach(crime => {
-    const neighborhoodNumber = crime.neighborhood_number;
-    if (neighborhoodCountMap.has(neighborhoodNumber)) {
-      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
-    } else {
-      neighborhoodCountMap.set(neighborhoodNumber, 1);
-    }
-  });
+    // Count crimes per neighborhood
+    map.crimes.forEach(crime => {
+        const neighborhoodNumber = crime.neighborhood_number;
+        if (neighborhoodCountMap.has(neighborhoodNumber)) {
+            neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+        } else {
+            neighborhoodCountMap.set(neighborhoodNumber, 1);
+        }
+    });
 
-  // Update the number of crimes for each neighborhood marker
-  map.neighborhood_markers.forEach(marker => {
-    const count = neighborhoodCountMap.get(marker.number);
-    marker.crimes = count || 0;
-    if (marker.marker) {
-      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
-    }
-  });
+    // Update the number of crimes for each neighborhood marker
+    map.neighborhood_markers.forEach(marker => {
+        const count = neighborhoodCountMap.get(marker.number);
+        marker.crimes = count || 0;
+        if (marker.marker) {
+            marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+        }
+    });
 }
 
 // FUNCTIONS
@@ -165,7 +165,7 @@ function initializeCrimes() {
     map.neighborhood_markers.forEach((each) => {
         const { location, number, marker } = each;
 
-        if (map.bounds.se.lat < location[0]  && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
+        if (map.bounds.se.lat < location[0] && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
             query.push(number);
         }
     });
@@ -238,6 +238,29 @@ function executeUpdateAndClose() {
     closeLocationDialog(); // Call the closeLocationDialog function
 }
 
+// Function to determine the row background color based on incident type
+const getIncidentType = (incidentType) => {
+    switch (incidentType) {
+        case "Simple Assault Dom.":
+        case "Agg. Assault Dom.":
+        case "HOMICIDE":
+        case "Rape":
+        case "Attempt":
+        case "Agg. Assault":
+        case "Rape, By Force":
+            return "violent-crime";
+        case "Robbery":
+        case "Theft":
+        case "Auto Theft":
+        case "Larceny":
+        case "Burglary":
+        case "Shoplifting":
+        case "Criminal Damage":
+            return "property-crime";
+        default:
+            return "other";
+    }
+};
 
 const neighborhoodData = [
     { "id": 1, "name": "Conway/Battlecreek/Highwood" },
@@ -327,7 +350,6 @@ const submitNewIncident = async () => {
 </script>
 
 <template>
-
     <div>
         <!-- Fixed Search Bar -->
         <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
@@ -355,6 +377,35 @@ const submitNewIncident = async () => {
                     placeholder="Enter location" />
                 <button class="button" type="button" @click="executeUpdateAndClose">Go</button>
                 <!-- Call executeUpdateAndClose method -->
+            </dialog>
+
+            <dialog id="crime-form-dialog">
+                <h1 class="dialog-header">Add New Crime Incident</h1>
+                <form @submit.prevent="submitNewIncident">
+                    <!-- Input fields for new crime incident -->
+                    <label class="dialog-label">Case Number: </label>
+                    <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
+
+                    <label class="dialog-label">Date & Time: </label>
+                    <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
+
+                    <label class="dialog-label">Code: </label>
+                    <input class="dialog-input" type="text" v-model="newIncident.code" required />
+
+                    <label class="dialog-label">Incident: </label>
+                    <input class="dialog-input" type="text" v-model="newIncident.incident" required />
+
+                    <label class="dialog-label">Police Grid: </label>
+                    <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
+
+                    <label class="dialog-label">Neighborhood Number: </label>
+                    <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
+
+                    <label class="dialog-label">Block: </label>
+                    <input class="dialog-input" type="text" v-model="newIncident.block" required />
+
+                    <button class="button" type="submit">Submit</button>
+                </form>
             </dialog>
             <div class="grid-container">
                 <div class="grid-x grid-padding-x">
@@ -390,37 +441,38 @@ const submitNewIncident = async () => {
             </tbody>
         </table>
     </div>
-    <dialog id="crime-form-dialog">
-        <h1 class="dialog-header">Add New Crime Incident</h1>
-        <form @submit.prevent="submitNewIncident">
-            <!-- Input fields for new crime incident -->
-            <label class="dialog-label">Case Number: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
-
-            <label class="dialog-label">Date & Time: </label>
-            <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
-
-            <label class="dialog-label">Code: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.code" required />
-
-            <label class="dialog-label">Incident: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.incident" required />
-
-            <label class="dialog-label">Police Grid: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
-
-            <label class="dialog-label">Neighborhood Number: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
-
-            <label class="dialog-label">Block: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.block" required />
-
-            <button class="button" type="submit">Submit</button>
-        </form>
-    </dialog>
-
+    <div class="cell large-2">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        <center>Legend</center>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="violent-crime" style="line-height: 2rem;">
+                    <center>Violent Crimes</center>
+                </tr>
+                <tr id="property-crime" style="line-height: 2rem;">
+                    <center>Property Crimes</center>
+                </tr>
+                <tr style="line-height: 2rem;">
+                    <center>Other</center>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </template>
 <style>
+#violent-crime {
+    background-color: rgb(255, 136, 136);
+}
+
+#property-crime {
+    background-color: rgb(255, 222, 139);
+}
+
 #rest-dialog {
     width: 20rem;
     margin-top: 1rem;
