@@ -65,12 +65,10 @@ async function updateMap() {
     }
 }
 
-
-
-
-// Function to check if coordinates are within St. Paul's bounds
-function checkBounds(lat, lon) {
-    return true;
+// Function to check if crime is within the window view bounds
+async function checkBounds(lat, lon) {
+    console.log(map.bounds.nw)
+    console.log(map.bounds.se)
 }
 
 // Vue callback for once <template> HTML has been added to web page
