@@ -132,26 +132,26 @@ onMounted(() => {
 });
 
 function updateNeighborhoodCrimeCount() {
-    const neighborhoodCountMap = new Map();
+  const neighborhoodCountMap = new Map();
 
-    // Count crimes per neighborhood
-    map.crimes.forEach(crime => {
-        const neighborhoodNumber = crime.neighborhood_number;
-        if (neighborhoodCountMap.has(neighborhoodNumber)) {
-            neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
-        } else {
-            neighborhoodCountMap.set(neighborhoodNumber, 1);
-        }
-    });
+  // Count crimes per neighborhood
+  map.crimes.forEach(crime => {
+    const neighborhoodNumber = crime.neighborhood_number;
+    if (neighborhoodCountMap.has(neighborhoodNumber)) {
+      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+    } else {
+      neighborhoodCountMap.set(neighborhoodNumber, 1);
+    }
+  });
 
-    // Update the number of crimes for each neighborhood marker
-    map.neighborhood_markers.forEach(marker => {
-        const count = neighborhoodCountMap.get(marker.number);
-        marker.crimes = count || 0;
-        if (marker.marker) {
-            marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
-        }
-    });
+  // Update the number of crimes for each neighborhood marker
+  map.neighborhood_markers.forEach(marker => {
+    const count = neighborhoodCountMap.get(marker.number);
+    marker.crimes = count || 0;
+    if (marker.marker) {
+      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+    }
+  });
 }
 
 // FUNCTIONS
@@ -238,29 +238,6 @@ function executeUpdateAndClose() {
     closeLocationDialog(); // Call the closeLocationDialog function
 }
 
-// Function to determine the row background color based on incident type
-const getIncidentType = (incidentType) => {
-    switch (incidentType) {
-        case "Simple Assault Dom.":
-        case "Agg. Assault Dom.":
-        case "HOMICIDE":
-        case "Rape":
-        case "Attempt":
-        case "Agg. Assault":
-        case "Rape, By Force":
-            return "violent-crime";
-        case "Robbery":
-        case "Theft":
-        case "Auto Theft":
-        case "Larceny":
-        case "Burglary":
-        case "Shoplifting":
-        case "Criminal Damage":
-            return "property-crime";
-        default:
-            return "other";
-    }
-};
 
 const neighborhoodData = [
     { "id": 1, "name": "Conway/Battlecreek/Highwood" },
@@ -284,6 +261,69 @@ const neighborhoodData = [
 
 const neighborhoodMap = new Map(neighborhoodData.map(entry => [entry.id, entry.name]));
 console.log(neighborhoodMap)
+
+let newIncident = reactive({
+    case_number: '',
+    date_time: '',
+    code: '',
+    incident: '',
+    police_grid: '',
+    neighborhood_number: '',
+    block: ''
+});
+
+const isCrimeFormDialogOpen = ref(false);
+
+// Function to open the dialog
+const openCrimeFormDialog = () => {
+    const crimeFormDialog = document.getElementById('crime-form-dialog');
+    if (crimeFormDialog) {
+        crimeFormDialog.showModal(); // Show the crime form dialog
+    } else {
+        console.error('Crime form dialog not found');
+    }
+};
+const submitNewIncident = async () => {
+    try {
+        const response = await fetch('http://your-api-endpoint.com/new-incident', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                case_number: newIncident.case_number,
+                date_time: newIncident.date_time,
+                code: newIncident.code,
+                incident: newIncident.incident,
+                police_grid: newIncident.police_grid,
+                neighborhood_number: newIncident.neighborhood_number,
+                block: newIncident.block,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to add new incident');
+        }
+
+        // Process the response or handle success as needed
+        // For instance, you might want to update your local data or show a success message
+        // Example: const result = await response.json();
+        // ... handle success or update local data ...
+
+        // Close the dialog or perform any other necessary action upon successful submission
+        const crimeFormDialog = document.getElementById('crime-form-dialog');
+        crimeFormDialog.close();
+
+        // Clear the form fields after successful submission
+        Object.keys(newIncident).forEach(key => {
+            newIncident[key] = '';
+        });
+    } catch (error) {
+        console.error('Error adding new incident:', error);
+        // Handle error: show error message or perform appropriate actions
+    }
+};
+
 </script>
 
 <template>
@@ -323,69 +363,64 @@ console.log(neighborhoodMap)
             </div>
         </div>
     </div>
-    <div class="grid-container">
-        <div class="grid-x grid-padding-x">
-            <div class="cell large-10">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Case Number</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Incident</th>
-                            <th>Police Grid</th>
-                            <th>Neighborhood</th>
-                            <th>Block</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="crime in map.crimes" :key="crime.case_number" :id=getIncidentType(crime.incident)>
-                            <td>{{ crime.case_number }}</td>
-                            <td>{{ crime.date }}</td>
-                            <td>{{ crime.time }}</td>
-                            <td>{{ crime.incident }}</td>
-                            <td>{{ crime.police_grid }}</td>
-                            <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
-                            <td>{{ crime.block }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="cell large-2">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>
-                                <center>Legend</center>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr id="violent-crime" style="line-height: 2rem;">
-                            <center>Violent Crimes</center>
-                        </tr>
-                        <tr id="property-crime" style="line-height: 2rem;">
-                            <center>Property Crimes</center>
-                        </tr>
-                        <tr style="line-height: 2rem;">
-                            <center>Other</center>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <button class="button" @click="openCrimeFormDialog">Add New Incident</button>
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Case Number</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Incident</th>
+                    <th>Police Grid</th>
+                    <th>Neighborhood</th>
+                    <th>Block</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="crime in map.crimes" :key="crime.case_number">
+                    <td>{{ crime.case_number }}</td>
+                    <td>{{ crime.date }}</td>
+                    <td>{{ crime.time }}</td>
+                    <td>{{ crime.incident }}</td>
+                    <td>{{ crime.police_grid }}</td>
+                    <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
+                    <td>{{ crime.block }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    
+    <dialog id="crime-form-dialog">
+        <h1 class="dialog-header">Add New Crime Incident</h1>
+        <form @submit.prevent="submitNewIncident">
+            <!-- Input fields for new crime incident -->
+            <label class="dialog-label">Case Number: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
+
+            <label class="dialog-label">Date & Time: </label>
+            <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
+
+            <label class="dialog-label">Code: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.code" required />
+
+            <label class="dialog-label">Incident: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.incident" required />
+
+            <label class="dialog-label">Police Grid: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
+
+            <label class="dialog-label">Neighborhood Number: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
+
+            <label class="dialog-label">Block: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.block" required />
+
+            <button class="button" type="submit">Submit</button>
+        </form>
+    </dialog>
+
 </template>
 <style>
-#violent-crime {
-    background-color: rgb(255, 136, 136);
-}
-
-#property-crime {
-    background-color: rgb(255, 222, 139);
-}
-
 #rest-dialog {
     width: 20rem;
     margin-top: 1rem;
@@ -413,4 +448,5 @@ console.log(neighborhoodMap)
 .dialog-error {
     font-size: 1rem;
     color: #D32323;
-}</style>
+}
+</style>
