@@ -120,6 +120,28 @@ onMounted(() => {
     }
 });
 
+function updateNeighborhoodCrimeCount() {
+  const neighborhoodCountMap = new Map();
+
+  // Count crimes per neighborhood
+  map.crimes.forEach(crime => {
+    const neighborhoodNumber = crime.neighborhood_number;
+    if (neighborhoodCountMap.has(neighborhoodNumber)) {
+      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+    } else {
+      neighborhoodCountMap.set(neighborhoodNumber, 1);
+    }
+  });
+
+  // Update the number of crimes for each neighborhood marker
+  map.neighborhood_markers.forEach(marker => {
+    const count = neighborhoodCountMap.get(marker.number);
+    marker.crimes = count || 0;
+    if (marker.marker) {
+      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+    }
+  });
+}
 
 // FUNCTIONS
 // Function called once user has entered REST API URL
@@ -133,6 +155,7 @@ function initializeCrimes() {
         })
         .then((data) => {
             map.crimes = data;
+            updateNeighborhoodCrimeCount();
             map.crimes.forEach((crime) => {
                 console.log(crime);
             });
