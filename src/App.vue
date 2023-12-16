@@ -67,8 +67,8 @@ async function updateMap() {
 
 // Function to check if crime is within the window view bounds
 async function checkBounds(lat, lon) {
-    console.log(map.bounds.nw)
-    console.log(map.bounds.se)
+    console.log("The nw bounds are " + map.bounds.nw.value)
+    console.log("The se bounds are " + map.bounds.se.value)
 }
 
 // Vue callback for once <template> HTML has been added to web page
@@ -110,6 +110,10 @@ onMounted(() => {
     function updateLocation() {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
+        map.bounds.nw.lat =
+        map.bounds.nw.lng = 
+        console.log(map.leaflet.getBounds()._northEast.lat)
+        console.log(map.leaflet.getBounds()._southWest.lat)
 
         // Update the location input with the new coordinates
         new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
