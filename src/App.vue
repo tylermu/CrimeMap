@@ -67,9 +67,21 @@ async function updateMap() {
 }
 
 // Function to check if crime is within the window view bounds
-async function checkBounds(lat, lon) {
-    console.log("The nw bounds are " + map.bounds.nw.value)
-    console.log("The se bounds are " + map.bounds.se.value)
+async function updateTable() {
+    map.bounds.nw.lat = map.leaflet.getBounds()._northEast.lat;
+    map.bounds.nw.lng = map.leaflet.getBounds()._northEast.lng;
+    map.bounds.se.lat = map.leaflet.getBounds()._southWest.lat;
+    map.bounds.se.lng = map.leaflet.getBounds()._southWest.lng;
+    let query = []
+    console.log("Map moved")
+    map.neighborhood_markers.forEach((each) => {
+        const { location, number, marker } = each;
+
+        if (map.bounds.se.lat < location[0]  && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
+            query.push(number);
+            console.log(number + " is in view");
+        }
+    });
 }
 
 // Vue callback for once <template> HTML has been added to web page
@@ -111,10 +123,8 @@ onMounted(() => {
     function updateLocation() {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
-        map.bounds.nw.lat =
-            map.bounds.nw.lng =
-            console.log(map.leaflet.getBounds()._northEast.lat)
-        console.log(map.leaflet.getBounds()._southWest.lat)
+        initializeCrimes(); //On map move, update database
+        
 
         // Update the location input with the new coordinates
         new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
@@ -147,7 +157,37 @@ function updateNeighborhoodCrimeCount() {
 // FUNCTIONS
 // Function called once user has entered REST API URL
 function initializeCrimes() {
-    fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31`)
+    map.bounds.nw.lat = map.leaflet.getBounds()._northEast.lat;
+    map.bounds.nw.lng = map.leaflet.getBounds()._northEast.lng;
+    map.bounds.se.lat = map.leaflet.getBounds()._southWest.lat;
+    map.bounds.se.lng = map.leaflet.getBounds()._southWest.lng;
+    let query = []
+    map.neighborhood_markers.forEach((each) => {
+        const { location, number, marker } = each;
+
+        if (map.bounds.se.lat < location[0]  && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
+            query.push(number);
+        }
+    });
+    let changes = ""
+    let count = 0
+    if (query.length != 0) {
+        query.forEach((number) => {
+            console.log("In view is " + number)
+            if (count == 0) {
+                changes = "&neighborhood="
+            } else {
+                changes = changes + ","
+            }
+            changes = changes + number
+            count = count + 1;
+        })
+    } else {
+        changes = "&neighborhood=18"
+        //we need to have this return and empty table
+    }
+    console.log(changes);
+    fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31` + changes)
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -158,7 +198,7 @@ function initializeCrimes() {
             map.crimes = data;
             updateNeighborhoodCrimeCount();
             map.crimes.forEach((crime) => {
-                console.log(crime);
+                //console.log(crime);
             });
 
             // TODO: Handle crime data as needed (e.g., display markers on the map)
