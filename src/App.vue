@@ -111,8 +111,8 @@ onMounted(() => {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
         map.bounds.nw.lat =
-        map.bounds.nw.lng = 
-        console.log(map.leaflet.getBounds()._northEast.lat)
+            map.bounds.nw.lng =
+            console.log(map.leaflet.getBounds()._northEast.lat)
         console.log(map.leaflet.getBounds()._southWest.lat)
 
         // Update the location input with the new coordinates
@@ -121,26 +121,26 @@ onMounted(() => {
 });
 
 function updateNeighborhoodCrimeCount() {
-  const neighborhoodCountMap = new Map();
+    const neighborhoodCountMap = new Map();
 
-  // Count crimes per neighborhood
-  map.crimes.forEach(crime => {
-    const neighborhoodNumber = crime.neighborhood_number;
-    if (neighborhoodCountMap.has(neighborhoodNumber)) {
-      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
-    } else {
-      neighborhoodCountMap.set(neighborhoodNumber, 1);
-    }
-  });
+    // Count crimes per neighborhood
+    map.crimes.forEach(crime => {
+        const neighborhoodNumber = crime.neighborhood_number;
+        if (neighborhoodCountMap.has(neighborhoodNumber)) {
+            neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+        } else {
+            neighborhoodCountMap.set(neighborhoodNumber, 1);
+        }
+    });
 
-  // Update the number of crimes for each neighborhood marker
-  map.neighborhood_markers.forEach(marker => {
-    const count = neighborhoodCountMap.get(marker.number);
-    marker.crimes = count || 0;
-    if (marker.marker) {
-      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
-    }
-  });
+    // Update the number of crimes for each neighborhood marker
+    map.neighborhood_markers.forEach(marker => {
+        const count = neighborhoodCountMap.get(marker.number);
+        marker.crimes = count || 0;
+        if (marker.marker) {
+            marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+        }
+    });
 }
 
 // FUNCTIONS
@@ -197,6 +197,29 @@ function executeUpdateAndClose() {
     closeLocationDialog(); // Call the closeLocationDialog function
 }
 
+// Function to determine the row background color based on incident type
+const getIncidentType = (incidentType) => {
+    switch (incidentType) {
+        case "Simple Assault Dom.":
+        case "Agg. Assault Dom.":
+        case "HOMICIDE":
+        case "Rape":
+        case "Attempt":
+        case "Agg. Assault":
+        case "Rape, By Force":
+            return "violent-crime";
+        case "Robbery":
+        case "Theft":
+        case "Auto Theft":
+        case "Larceny":
+        case "Burglary":
+        case "Shoplifting":
+        case "Criminal Damage":
+            return "property-crime";
+        default:
+            return "other";
+    }
+};
 
 const neighborhoodData = [
     { "id": 1, "name": "Conway/Battlecreek/Highwood" },
@@ -258,34 +281,68 @@ console.log(neighborhoodMap)
             </div>
         </div>
     </div>
-    <div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Case Number</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Incident</th>
-                    <th>Police Grid</th>
-                    <th>Neighborhood</th>
-                    <th>Block</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="crime in map.crimes" :key="crime.case_number">
-                    <td>{{ crime.case_number }}</td>
-                    <td>{{ crime.date }}</td>
-                    <td>{{ crime.time }}</td>
-                    <td>{{ crime.incident }}</td>
-                    <td>{{ crime.police_grid }}</td>
-                    <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
-                    <td>{{ crime.block }}</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="grid-container">
+        <div class="grid-x grid-padding-x">
+            <div class="cell large-10">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Case Number</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Incident</th>
+                            <th>Police Grid</th>
+                            <th>Neighborhood</th>
+                            <th>Block</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="crime in map.crimes" :key="crime.case_number" :id=getIncidentType(crime.incident)>
+                            <td>{{ crime.case_number }}</td>
+                            <td>{{ crime.date }}</td>
+                            <td>{{ crime.time }}</td>
+                            <td>{{ crime.incident }}</td>
+                            <td>{{ crime.police_grid }}</td>
+                            <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
+                            <td>{{ crime.block }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="cell large-2">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                <center>Legend</center>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="violent-crime" style="line-height: 2rem;">
+                            <center>Violent Crimes</center>
+                        </tr>
+                        <tr id="property-crime" style="line-height: 2rem;">
+                            <center>Property Crimes</center>
+                        </tr>
+                        <tr style="line-height: 2rem;">
+                            <center>Other</center>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </template>
 <style>
+#violent-crime {
+    background-color: rgb(255, 136, 136);
+}
+
+#property-crime {
+    background-color: rgb(255, 222, 139);
+}
+
 #rest-dialog {
     width: 20rem;
     margin-top: 1rem;
@@ -313,5 +370,4 @@ console.log(neighborhoodMap)
 .dialog-error {
     font-size: 1rem;
     color: #D32323;
-}
-</style>
+}</style>
