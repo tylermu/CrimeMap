@@ -38,6 +38,7 @@ let map = reactive(
         ]
     }
 );
+
 async function updateMap() {
     const location = new_location.value.trim(); // Get the entered location
 
@@ -223,6 +224,7 @@ console.log(neighborhoodMap)
 </script>
 
 <template>
+
     <div>
         <!-- Fixed Search Bar -->
         <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
@@ -284,6 +286,7 @@ console.log(neighborhoodMap)
             </tbody>
         </table>
     </div>
+    
 </template>
 <style>
 #rest-dialog {
