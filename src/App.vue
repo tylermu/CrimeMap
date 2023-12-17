@@ -405,12 +405,10 @@ async function deleteIncident(incident) {
     <!-- Fixed Search Bar -->
     <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
         <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
-            style="width: calc(100% - 6rem);" />
+            style="width: calc(100% - 100px);" />
+        <button class="button" type="button" style="float: right; margin-right: 10px; margin-top: 5px;"
+            @click="executeUpdateAndClose">Go</button>
     </div>
-    <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
-        <button style="float: right; width: 6rem;" class="button" type="button" @click="executeUpdateAndClose">Go</button>
-    </div>
-
     <!-- Rest of your content -->
     <div class="full-width" style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
         <dialog id="rest-dialog" open>
