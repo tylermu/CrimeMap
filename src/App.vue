@@ -224,7 +224,7 @@ async function dataMarkers(crimeString) { //plotting markers for each of the cri
         if (!response.ok) {
             throw new Error('Network response was not ok.');
         }
-        
+
         const data = await response.json();
         if (data && data.length > 0) {
             const { lat, lon, display_name } = data[0];
@@ -378,76 +378,94 @@ const getIncidentType = (incidentType) => {
     }
 };
 
+async function deleteIncident(incident) {
+    try {
+        const response = await fetch('http://your-api-endpoint.com/remove-incident', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                case_number: incident.case_number,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to remove incident');
+        }
+    } catch (error) {
+        console.error('Error removing incident:', error);
+        // Handle error: show error message or perform appropriate actions
+    }
+}
+
 </script>
 
 <template>
-    <div>
-        <!-- Fixed Search Bar -->
-        <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
-            <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
-                style="width: calc(100% - 100px);" />
-            <button class="button" type="button" style="float: right; margin-right: 10px; margin-top: 5px;"
-                @click="executeUpdateAndClose">Go</button>
-        </div>
+    <!-- Fixed Search Bar -->
+    <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
+        <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
+            style="width: calc(100% - 6rem);" />
+    </div>
+    <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
+        <button style="float: right; width: 6rem;" class="button" type="button" @click="executeUpdateAndClose">Go</button>
+    </div>
 
-        <!-- Rest of your content -->
-        <div style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
-            <dialog id="rest-dialog" open>
-                <h1 class="dialog-header">St. Paul Crime REST API</h1>
-                <label class="dialog-label">URL: </label>
-                <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url"
-                    placeholder="http://localhost:8000" />
-                <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
-                <br />
-                <button class="button" type="button" @click="closeDialog">OK</button>
-            </dialog>
-            <dialog id="location-dialog">
-                <h1 class="dialog-header">Enter Location</h1>
-                <label class="dialog-label">Location: </label>
-                <input id="dialog-location" class="dialog-input" type="text" v-model="new_location"
-                    placeholder="Enter location" />
-                <button class="button" type="button" @click="executeUpdateAndClose">Go</button>
-                <!-- Call executeUpdateAndClose method -->
-            </dialog>
+    <!-- Rest of your content -->
+    <div class="full-width" style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
+        <dialog id="rest-dialog" open>
+            <h1 class="dialog-header">St. Paul Crime REST API</h1>
+            <label class="dialog-label">URL: </label>
+            <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url"
+                placeholder="http://localhost:8000" />
+            <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
+            <br />
+            <button class="button" type="button" @click="closeDialog">OK</button>
+        </dialog>
+        <dialog id="location-dialog">
+            <h1 class="dialog-header">Enter Location</h1>
+            <label class="dialog-label">Location: </label>
+            <input id="dialog-location" class="dialog-input" type="text" v-model="new_location"
+                placeholder="Enter location" />
+            <button class="button" type="button" @click="executeUpdateAndClose">Go</button>
+            <!-- Call executeUpdateAndClose method -->
+        </dialog>
 
-            <dialog id="crime-form-dialog">
-                <h1 class="dialog-header">Add New Crime Incident</h1>
-                <form @submit.prevent="submitNewIncident">
-                    <!-- Input fields for new crime incident -->
-                    <label class="dialog-label">Case Number: </label>
-                    <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
+        <dialog id="crime-form-dialog">
+            <h1 class="dialog-header">Add New Crime Incident</h1>
+            <form @submit.prevent="submitNewIncident">
+                <!-- Input fields for new crime incident -->
+                <label class="dialog-label">Case Number: </label>
+                <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
 
-                    <label class="dialog-label">Date & Time: </label>
-                    <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
+                <label class="dialog-label">Date & Time: </label>
+                <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
 
-                    <label class="dialog-label">Code: </label>
-                    <input class="dialog-input" type="text" v-model="newIncident.code" required />
+                <label class="dialog-label">Code: </label>
+                <input class="dialog-input" type="text" v-model="newIncident.code" required />
 
-                    <label class="dialog-label">Incident: </label>
-                    <input class="dialog-input" type="text" v-model="newIncident.incident" required />
+                <label class="dialog-label">Incident: </label>
+                <input class="dialog-input" type="text" v-model="newIncident.incident" required />
 
-                    <label class="dialog-label">Police Grid: </label>
-                    <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
+                <label class="dialog-label">Police Grid: </label>
+                <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
 
-                    <label class="dialog-label">Neighborhood Number: </label>
-                    <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
+                <label class="dialog-label">Neighborhood Number: </label>
+                <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
 
-                    <label class="dialog-label">Block: </label>
-                    <input class="dialog-input" type="text" v-model="newIncident.block" required />
+                <label class="dialog-label">Block: </label>
+                <input class="dialog-input" type="text" v-model="newIncident.block" required />
 
-                    <button class="button" type="submit">Submit</button>
-                </form>
-            </dialog>
-            <div class="grid-container">
-                <div class="grid-x grid-padding-x">
-                    <div id="leafletmap" class="cell auto"></div>
-                </div>
+                <button class="button" type="submit">Submit</button>
+            </form>
+        </dialog>
+        <div class="grid-container">
+            <div class="grid-x grid-padding-x">
+                <div id="leafletmap" class="cell auto"></div>
             </div>
         </div>
-    </div>
-    <div class="grid-container">
-        <div class="grid-x grid-padding-x">
-            <div class="cell large-10">
+        <div class="grid-x grid-padding-x" style="margin: 2rem;">
+            <div class="cell large-11">
                 <table>
                     <thead>
                         <tr>
@@ -458,6 +476,8 @@ const getIncidentType = (incidentType) => {
                             <th>Police Grid</th>
                             <th>Neighborhood</th>
                             <th>Block</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -469,13 +489,15 @@ const getIncidentType = (incidentType) => {
                             <td>{{ crime.police_grid }}</td>
                             <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                             <td>{{ crime.block }}</td>
-                            <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add Marker</button></td>
-                            <td><button class="button" @click="">Delete</button></td>
+                            <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add
+                                    Marker</button>
+                            </td>
+                            <td><button class="button" @click="deleteIncident(crime.case_number)">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="cell large-2">
+            <div class="cell large-1">
                 <button class="button" @click="openCrimeFormDialog">Add New Incident</button>
                 <table>
                     <thead>
@@ -508,6 +530,10 @@ const getIncidentType = (incidentType) => {
 
 #property-crime {
     background-color: rgb(255, 222, 139);
+}
+
+td button {
+    width: 7rem;
 }
 
 #rest-dialog {
