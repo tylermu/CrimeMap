@@ -208,11 +208,7 @@ function initializeCrimes() {
             map.crimes = data;
             updateNeighborhoodCrimeCount();
             map.crimes.forEach((crime) => {
-                let newCrime = replaceDoubleX(crime.block); //the replaced XX's for 0's
-                console.log(newCrime)
-                //dataMarkers(newCrime);
             });
-            datamMarkers("2180 Dayton Ave")
             // TODO: Handle crime data as needed (e.g., display markers on the map)
         })
         .catch((error) => {
