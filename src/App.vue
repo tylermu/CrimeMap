@@ -212,7 +212,7 @@ function initializeCrimes() {
                 console.log(newCrime)
                 //dataMarkers(newCrime);
             });
-            datamMarkers("2180 Dayton Ave")
+            dataMarkers("2180 Dayton Ave")
             // TODO: Handle crime data as needed (e.g., display markers on the map)
         })
         .catch((error) => {
