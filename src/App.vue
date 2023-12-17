@@ -469,6 +469,8 @@ const getIncidentType = (incidentType) => {
                             <td>{{ crime.police_grid }}</td>
                             <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                             <td>{{ crime.block }}</td>
+                            <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add Marker</button></td>
+                            <td><button class="button" @click="">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
