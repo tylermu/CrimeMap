@@ -39,6 +39,16 @@ let map = reactive(
     }
 );
 
+async function replaceDoubleX(inputString) {
+    // Define a regular expression pattern to match two consecutive capital X's
+    let pattern = /XX/g;
+
+    // Replace the matched pattern with '00'
+    let resultString = inputString.replace(pattern, '00');
+
+    return resultString;
+}
+
 async function updateMap() {
     const location = new_location.value.trim(); // Get the entered location
 
@@ -198,15 +208,39 @@ function initializeCrimes() {
             map.crimes = data;
             updateNeighborhoodCrimeCount();
             map.crimes.forEach((crime) => {
-                //console.log(crime);
+                let newCrime = replaceDoubleX(crime.block); //the replaced XX's for 0's
+                console.log(newCrime)
+                //dataMarkers(newCrime);
             });
-
+            datamMarkers("2180 Dayton Ave")
             // TODO: Handle crime data as needed (e.g., display markers on the map)
         })
         .catch((error) => {
             console.error('Error fetching crime data:', error);
             dialog_err.value = true;
         });
+}
+
+async function dataMarkers(crimeString) { //plotting markers for each of the crimes
+    const location = crimeString; // Get the entered location
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const { lat, lon, display_name } = data[0];
+            // Create a marker at the entered location
+            const marker = L.marker([lat, lon]).addTo(map.leaflet);
+            marker.bindPopup(display_name).openPopup();
+        } else {
+            console.log('Location not found');
+        }
+    } catch (error) {
+        console.error('Error fetching location:', error);
+    }
 }
 
 // Function called when user presses 'OK' on dialog box
