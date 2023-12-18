@@ -34,9 +34,9 @@ let map = reactive(
             { location: [44.913106, -93.170779], marker: null, number: 15 },
             { location: [44.937705, -93.136997], marker: null, number: 16 },
             { location: [44.949203, -93.093739], marker: null, number: 17 }
-        ], 
+        ],
         extra_markers: [
-            { location: [null, null], marker: null}
+            { location: [null, null], marker: null }
         ]
     }
 );
@@ -120,7 +120,7 @@ onMounted(() => {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
         initializeCrimes(); //On map move, update database
-        
+
 
         // Update the location input with the new coordinates
         new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
@@ -128,26 +128,26 @@ onMounted(() => {
 });
 
 function updateNeighborhoodCrimeCount() {
-  const neighborhoodCountMap = new Map();
+    const neighborhoodCountMap = new Map();
 
-  // Count crimes per neighborhood
-  map.crimes.forEach(crime => {
-    const neighborhoodNumber = crime.neighborhood_number;
-    if (neighborhoodCountMap.has(neighborhoodNumber)) {
-      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
-    } else {
-      neighborhoodCountMap.set(neighborhoodNumber, 1);
-    }
-  });
+    // Count crimes per neighborhood
+    map.crimes.forEach(crime => {
+        const neighborhoodNumber = crime.neighborhood_number;
+        if (neighborhoodCountMap.has(neighborhoodNumber)) {
+            neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+        } else {
+            neighborhoodCountMap.set(neighborhoodNumber, 1);
+        }
+    });
 
-  // Update the number of crimes for each neighborhood marker
-  map.neighborhood_markers.forEach(marker => {
-    const count = neighborhoodCountMap.get(marker.number);
-    marker.crimes = count || 0;
-    if (marker.marker) {
-      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
-    }
-  });
+    // Update the number of crimes for each neighborhood marker
+    map.neighborhood_markers.forEach(marker => {
+        const count = neighborhoodCountMap.get(marker.number);
+        marker.crimes = count || 0;
+        if (marker.marker) {
+            marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+        }
+    });
 }
 
 // FUNCTIONS
@@ -161,7 +161,7 @@ function initializeCrimes() {
     map.neighborhood_markers.forEach((each) => {
         const { location, number, marker } = each;
 
-        if (map.bounds.se.lat < location[0]  && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
+        if (map.bounds.se.lat < location[0] && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
             query.push(number);
         }
     });
@@ -320,10 +320,55 @@ const submitNewIncident = async () => {
     }
 };
 
+// Function to determine the row background color based on incident type
+const getIncidentType = (incidentType) => {
+    switch (incidentType) {
+        case "Simple Assault Dom.":
+        case "Agg. Assault Dom.":
+        case "HOMICIDE":
+        case "Rape":
+        case "Attempt":
+        case "Agg. Assault":
+        case "Rape, By Force":
+            return "violent-crime";
+        case "Robbery":
+        case "Theft":
+        case "Auto Theft":
+        case "Larceny":
+        case "Burglary":
+        case "Shoplifting":
+        case "Criminal Damage":
+            return "property-crime";
+        default:
+            return "other";
+    }
+};
+
+async function deleteIncident(incident) {
+    try {
+        const response = await fetch('http://your-api-endpoint.com/remove-incident', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                case_number: incident.case_number,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to remove incident');
+        }
+    } catch (error) {
+        console.error('Error removing incident:', error);
+        // Handle error: show error message or perform appropriate actions
+    }
+}
+
+
 </script>
 
 <template>
-
     <div>
         <!-- Fixed Search Bar -->
         <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
@@ -359,32 +404,59 @@ const submitNewIncident = async () => {
             </div>
         </div>
     </div>
-    <button class="button" @click="openCrimeFormDialog">Add New Incident</button>
-    <div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Case Number</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Incident</th>
-                    <th>Police Grid</th>
-                    <th>Neighborhood</th>
-                    <th>Block</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="crime in map.crimes" :key="crime.case_number">
-                    <td>{{ crime.case_number }}</td>
-                    <td>{{ crime.date }}</td>
-                    <td>{{ crime.time }}</td>
-                    <td>{{ crime.incident }}</td>
-                    <td>{{ crime.police_grid }}</td>
-                    <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
-                    <td>{{ crime.block }}</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="grid-x grid-padding-x">
+        <div class="cell large-10">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case Number</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Incident</th>
+                        <th>Police Grid</th>
+                        <th>Neighborhood</th>
+                        <th>Block</th>
+                        <th></th>
+                        <th><button class="button" style="width: 7rem;" @click="openCrimeFormDialog">Add New Incident</button></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="crime in map.crimes" :key="crime.case_number" :id=getIncidentType(crime.incident)>
+                        <td>{{ crime.case_number }}</td>
+                        <td>{{ crime.date }}</td>
+                        <td>{{ crime.time }}</td>
+                        <td>{{ crime.incident }}</td>
+                        <td>{{ crime.police_grid }}</td>
+                        <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
+                        <td>{{ crime.block }}</td>
+                        <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add Marker</button></td>
+                        <td><button class="button" @click="deleteIncident(crime.case_number)">Delete</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="cell large-2">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            <center>Legend</center>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="violent-crime" style="line-height: 2rem;">
+                        <center>Violent Crimes</center>
+                    </tr>
+                    <tr id="property-crime" style="line-height: 2rem;">
+                        <center>Property Crimes</center>
+                    </tr>
+                    <tr style="line-height: 2rem;">
+                        <center>Other</center>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
     <dialog id="crime-form-dialog">
         <h1 class="dialog-header">Add New Crime Incident</h1>
@@ -414,9 +486,20 @@ const submitNewIncident = async () => {
             <button class="button" type="submit">Submit</button>
         </form>
     </dialog>
-
 </template>
 <style>
+#violent-crime {
+    background-color: rgb(255, 136, 136);
+}
+
+#property-crime {
+    background-color: rgb(255, 222, 139);
+}
+
+td button {
+    width: 7rem;
+}
+
 #rest-dialog {
     width: 20rem;
     margin-top: 1rem;
