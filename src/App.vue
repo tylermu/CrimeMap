@@ -44,6 +44,7 @@ let map = reactive(
     }
 );
 
+
 async function updateMap() {
     const location = new_location.value.trim(); // Get the entered location
 
@@ -97,6 +98,7 @@ async function updateMap() {
             map.leaflet.setView([lat, lon], 15); // Set the view to the entered location with a zoom level of 15
         } else {
             console.log('Location not found');
+            alert("The address you input is outside the St. Paul area. Please enter addresses inside St. Paul.");
         }
     } catch (error) {
         console.error('Error fetching location:', error);
@@ -379,7 +381,8 @@ const getIncidentType = (incidentType) => {
 
 async function dataMarkers(string) {
     const resultString = string.replace(/XX/g, '00');
-    const location = resultString.trim(); // Get the entered location
+    let location = resultString.trim(); // Get the entered location
+    location = location + ", St. Paul, MN"
     console.log(location);
 
     try {
@@ -394,17 +397,16 @@ async function dataMarkers(string) {
             let { lat, lon, display_name } = data[0];
 
             // Create a new marker at the entered location
-            
-            const newMarker = L.marker([lat, lon], {icon: L.divIcon({className: 'red-marker'})}).addTo(map.leaflet);
+            var newMarker = L.marker([lat, lon], {icon: L.divIcon({className: 'red-marker'})}).addTo(map.leaflet);
             newMarker.bindPopup(location).openPopup();
-            map.extra_markers2.push = { location: [lat, lon], marker: newMarker };
+            let count_extra = map.extra_markers2.size()-1;
+            map.extra_markers2[count_extra] = { location: [lat, lon], marker: newMarker };
 
-            map.extra_markers2.forEach((each) => {
-                console.log(each);
-            })
+
 
         } else {
             console.log('Location not found');
+            alert("Marker from the database cannot be attributed to a valid address");
         }
     } catch (error) {
         console.error('Error fetching location:', error);
