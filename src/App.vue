@@ -457,7 +457,7 @@ async function deleteIncident(incident) {
                     placeholder="http://localhost:8000" />
                 <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
                 <br />
-                <button class="button" type="button" @click="closeDialog">OK</button>
+                <button class="button success" type="button" @click="closeDialog">OK</button>
             </dialog>
             <dialog id="location-dialog">
                 <h1 class="dialog-header">Enter Location</h1>
@@ -499,8 +499,8 @@ async function deleteIncident(incident) {
                         <td>{{ crime.police_grid }}</td>
                         <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                         <td>{{ crime.block }}</td>
-                        <td><button class="button" @click="dataMarkers(crime.block)">Add Marker</button></td>
-                        <td><button class="button" @click="deleteIncident(crime.case_number)">Delete</button></td>
+                        <td><button class="button secondary" @click="dataMarkers(crime.block)">Add Marker</button></td>
+                        <td><button class="button alert" @click="deleteIncident(crime.case_number)">Delete</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -509,21 +509,13 @@ async function deleteIncident(incident) {
             <table>
                 <thead>
                     <tr>
-                        <th>
-                            <center>Legend</center>
-                        </th>
+                        <th>Legend</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr id="violent-crime" style="line-height: 2rem;">
-                        <center>Violent Crimes</center>
-                    </tr>
-                    <tr id="property-crime" style="line-height: 2rem;">
-                        <center>Property Crimes</center>
-                    </tr>
-                    <tr style="line-height: 2rem;">
-                        <center>Other</center>
-                    </tr>
+                    <tr><td id="violent-crime" style="line-height: 1.4rem;">Violent Crimes</td></tr>
+                    <tr><td id="property-crime" style="line-height: 1.4rem;">Property Crimes</td></tr>
+                    <tr><td id="other" style="line-height: 1.4rem;">Other</td></tr>
                 </tbody>
             </table>
         </div>
@@ -553,7 +545,7 @@ async function deleteIncident(incident) {
             <label class="dialog-label">Block: </label>
             <input class="dialog-input" type="text" v-model="newIncident.block" required />
 
-            <button class="button" type="submit">Submit</button>
+            <button class="button success" type="submit">Submit</button>
         </form>
     </dialog>
     <dialog id="crime-form-dialog">
@@ -581,11 +573,12 @@ async function deleteIncident(incident) {
             <label class="dialog-label">Block: </label>
             <input class="dialog-input" type="text" v-model="newIncident.block" required />
 
-            <button class="button" type="submit">Submit</button>
+            <button class="button success" type="submit">Submit</button>
         </form>
     </dialog>
 </template>
 <style>
+
 #violent-crime {
     background-color: rgb(255, 136, 136);
 }
@@ -596,6 +589,22 @@ async function deleteIncident(incident) {
 
 td button {
     width: 7rem;
+}
+th button {
+    font-weight: 800;
+}
+
+#other {
+    background-color: white;
+}
+
+tr th {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+tr td {
+    text-align: center;
 }
 
 #rest-dialog {
