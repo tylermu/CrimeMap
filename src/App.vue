@@ -37,6 +37,9 @@ let map = reactive(
         ],
         extra_markers: [
             { location: [null, null], marker: null }
+        ],
+        extra_markers2: [
+            { location: [null, null], marker: null }
         ]
     }
 );
@@ -300,6 +303,15 @@ const openCrimeFormDialog = () => {
         console.error('Crime form dialog not found');
     }
 };
+
+const openDataFormDialog = () => {
+    const dataFormDialog = document.getElementById('data-form-dialog');
+    if (dataFormDialog) {
+        dataFormDialog.showModal(); // Show the crime form dialog
+    } else {
+        console.error('Data form dialog not found');
+    }
+};
 const submitNewIncident = async () => {
     try {
         const response = await fetch('http://your-api-endpoint.com/new-incident', {
@@ -365,6 +377,40 @@ const getIncidentType = (incidentType) => {
     }
 };
 
+async function dataMarkers(string) {
+    const resultString = string.replace(/XX/g, '00');
+    const location = resultString.trim(); // Get the entered location
+    console.log(location);
+
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            let { lat, lon, display_name } = data[0];
+
+            // Create a new marker at the entered location
+            
+            const newMarker = L.marker([lat, lon], {icon: L.divIcon({className: 'red-marker'})}).addTo(map.leaflet);
+            newMarker.bindPopup(location).openPopup();
+            map.extra_markers2.push = { location: [lat, lon], marker: newMarker };
+
+            map.extra_markers2.forEach((each) => {
+                console.log(each);
+            })
+
+        } else {
+            console.log('Location not found');
+        }
+    } catch (error) {
+        console.error('Error fetching location:', error);
+    }
+}
+
 async function deleteIncident(incident) {
     try {
         const response = await fetch('http://your-api-endpoint.com/remove-incident', {
@@ -385,6 +431,7 @@ async function deleteIncident(incident) {
         // Handle error: show error message or perform appropriate actions
     }
 }
+
 
 
 </script>
@@ -437,7 +484,7 @@ async function deleteIncident(incident) {
                         <th>Police Grid</th>
                         <th>Neighborhood</th>
                         <th>Block</th>
-                        <th></th>
+                        <th><button class="button" style="width: 7rem;" @click="openDataFormDialog">Filter Data</button></th>
                         <th><button class="button" style="width: 7rem;" @click="openCrimeFormDialog">Add New Incident</button></th>
                     </tr>
                 </thead>
@@ -450,7 +497,7 @@ async function deleteIncident(incident) {
                         <td>{{ crime.police_grid }}</td>
                         <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                         <td>{{ crime.block }}</td>
-                        <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add Marker</button></td>
+                        <td><button class="button" @click="dataMarkers(crime.block)">Add Marker</button></td>
                         <td><button class="button" @click="deleteIncident(crime.case_number)">Delete</button></td>
                     </tr>
                 </tbody>
@@ -479,6 +526,34 @@ async function deleteIncident(incident) {
             </table>
         </div>
     </div>
+    <dialog id="data-form-dialog">
+        <h1 class="dialog-header">Filter Data</h1>
+        <form @submit.prevent="submitNewIncident">
+            <!-- Input fields for new crime incident -->
+            <label class="dialog-label">Case Number: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
+
+            <label class="dialog-label">Date & Time: </label>
+            <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
+
+            <label class="dialog-label">Code: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.code" required />
+
+            <label class="dialog-label">Incident: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.incident" required />
+
+            <label class="dialog-label">Police Grid: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
+
+            <label class="dialog-label">Neighborhood Number: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
+
+            <label class="dialog-label">Block: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.block" required />
+
+            <button class="button" type="submit">Submit</button>
+        </form>
+    </dialog>
     <dialog id="crime-form-dialog">
         <h1 class="dialog-header">Add New Crime Incident</h1>
         <form @submit.prevent="submitNewIncident">
@@ -548,5 +623,11 @@ td button {
 .dialog-error {
     font-size: 1rem;
     color: #D32323;
+}
+.red-marker {
+    background-color: blueviolet;
+    border-radius: 50%;
+    width: 3vw;
+    height: 3vh;
 }
 </style>
