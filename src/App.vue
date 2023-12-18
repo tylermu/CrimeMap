@@ -39,19 +39,8 @@ let map = reactive(
     }
 );
 
-async function replaceDoubleX(inputString) {
-    // Define a regular expression pattern to match two consecutive capital X's
-    let pattern = /XX/g;
-
-    // Replace the matched pattern with '00'
-    let resultString = inputString.replace(pattern, '00');
-
-    return resultString;
-}
-
 async function updateMap() {
     const location = new_location.value.trim(); // Get the entered location
-
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
         if (!response.ok) {
@@ -74,24 +63,6 @@ async function updateMap() {
     } catch (error) {
         console.error('Error fetching location:', error);
     }
-}
-
-// Function to check if crime is within the window view bounds
-async function updateTable() {
-    map.bounds.nw.lat = map.leaflet.getBounds()._northEast.lat;
-    map.bounds.nw.lng = map.leaflet.getBounds()._northEast.lng;
-    map.bounds.se.lat = map.leaflet.getBounds()._southWest.lat;
-    map.bounds.se.lng = map.leaflet.getBounds()._southWest.lng;
-    let query = []
-    console.log("Map moved")
-    map.neighborhood_markers.forEach((each) => {
-        const { location, number, marker } = each;
-
-        if (map.bounds.se.lat < location[0] && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
-            query.push(number);
-            console.log(number + " is in view");
-        }
-    });
 }
 
 // Vue callback for once <template> HTML has been added to web page
@@ -134,8 +105,6 @@ onMounted(() => {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
         initializeCrimes(); //On map move, update database
-
-
         // Update the location input with the new coordinates
         new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
     }
@@ -217,8 +186,13 @@ function initializeCrimes() {
         });
 }
 
-async function dataMarkers(crimeString) { //plotting markers for each of the crimes
-    const location = crimeString; // Get the entered location
+/**async function dataMarkers(crimeString) { //plotting markers for each of the crimes
+    console.log("datamarker on " + crimeString + " has been called");
+    let pattern = /XX/g;
+    let resultString = crimeString.replace(pattern, '00');
+    resultString = resultString + ", St. Paul, MN"
+    const location = resultString.trim(); // Get the entered location
+    console.log(location);
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
         if (!response.ok) {
@@ -228,8 +202,16 @@ async function dataMarkers(crimeString) { //plotting markers for each of the cri
         const data = await response.json();
         if (data && data.length > 0) {
             const { lat, lon, display_name } = data[0];
-            // Create a marker at the entered location
-            const marker = L.marker([lat, lon]).addTo(map.leaflet);
+            const redIcon = new L.Icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            const marker = L.marker([lat, lon], { icon: redIcon }).addTo(map.leaflet);
             marker.bindPopup(display_name).openPopup();
         } else {
             console.log('Location not found');
@@ -238,6 +220,7 @@ async function dataMarkers(crimeString) { //plotting markers for each of the cri
         console.error('Error fetching location:', error);
     }
 }
+**/
 
 // Function called when user presses 'OK' on dialog box
 function closeDialog() {
@@ -487,10 +470,8 @@ async function deleteIncident(incident) {
                             <td>{{ crime.police_grid }}</td>
                             <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                             <td>{{ crime.block }}</td>
-                            <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add
-                                    Marker</button>
-                            </td>
-                            <td><button class="button" @click="deleteIncident(crime.case_number)">Delete</button></td>
+                            <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add Marker</button></td>
+                            <td><button class="button" @click="">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
