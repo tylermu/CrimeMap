@@ -55,14 +55,22 @@ async function updateMap() {
         if (data && data.length > 0) {
             const { lat, lon, display_name } = data[0];
 
+            // Check if there's an existing marker in extra_markers
+            const existingMarker = map.extra_markers[0];
+
+            if (existingMarker.marker) {
+                // Update the position of the existing marker
+                existingMarker.location = [lat, lon];
+                existingMarker.marker.setLatLng([lat, lon]).update();
+                existingMarker.marker.bindPopup(location).openPopup();
+            } else {
+                // Create a new marker at the entered location
+                const newMarker = L.marker([lat, lon]).addTo(map.leaflet);
+                newMarker.bindPopup(location).openPopup();
+                map.extra_markers[0] = { location: [lat, lon], marker: newMarker };
+            }
+
             map.leaflet.setView([lat, lon], 15); // Set the view to the entered location with a zoom level of 15
-
-            // Create a marker at the entered location
-            const mainMarker = L.marker([lat, lon]).addTo(map.leaflet);
-            mainMarker.bindPopup(display_name).openPopup();
-            map.extra_markers.push({location: [lat, lon], marker: mainMarker})
-            
-
         } else {
             console.log('Location not found');
         }
@@ -70,6 +78,7 @@ async function updateMap() {
         console.error('Error fetching location:', error);
     }
 }
+
 
 // Vue callback for once <template> HTML has been added to web page
 onMounted(() => {
