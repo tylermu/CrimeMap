@@ -1,6 +1,5 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
-
 let crime_url = ref('');
 let dialog_err = ref(false);
 let new_location = ref('')
@@ -35,12 +34,16 @@ let map = reactive(
             { location: [44.913106, -93.170779], marker: null, number: 15 },
             { location: [44.937705, -93.136997], marker: null, number: 16 },
             { location: [44.949203, -93.093739], marker: null, number: 17 }
+        ], 
+        extra_markers: [
+            { location: [null, null], marker: null}
         ]
     }
 );
 
 async function updateMap() {
     const location = new_location.value.trim(); // Get the entered location
+
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
         if (!response.ok) {
@@ -55,8 +58,11 @@ async function updateMap() {
             map.leaflet.setView([lat, lon], 15); // Set the view to the entered location with a zoom level of 15
 
             // Create a marker at the entered location
-            const marker = L.marker([lat, lon]).addTo(map.leaflet);
-            marker.bindPopup(display_name).openPopup();
+            const mainMarker = L.marker([lat, lon]).addTo(map.leaflet);
+            mainMarker.bindPopup(display_name).openPopup();
+            map.extra_markers.push({location: [lat, lon], marker: mainMarker})
+            
+
         } else {
             console.log('Location not found');
         }
@@ -105,32 +111,34 @@ onMounted(() => {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
         initializeCrimes(); //On map move, update database
+        
+
         // Update the location input with the new coordinates
         new_location.value = `Lat: ${center.lat.toFixed(6)}, Lng: ${center.lng.toFixed(6)}`;
     }
 });
 
 function updateNeighborhoodCrimeCount() {
-    const neighborhoodCountMap = new Map();
+  const neighborhoodCountMap = new Map();
 
-    // Count crimes per neighborhood
-    map.crimes.forEach(crime => {
-        const neighborhoodNumber = crime.neighborhood_number;
-        if (neighborhoodCountMap.has(neighborhoodNumber)) {
-            neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
-        } else {
-            neighborhoodCountMap.set(neighborhoodNumber, 1);
-        }
-    });
+  // Count crimes per neighborhood
+  map.crimes.forEach(crime => {
+    const neighborhoodNumber = crime.neighborhood_number;
+    if (neighborhoodCountMap.has(neighborhoodNumber)) {
+      neighborhoodCountMap.set(neighborhoodNumber, neighborhoodCountMap.get(neighborhoodNumber) + 1);
+    } else {
+      neighborhoodCountMap.set(neighborhoodNumber, 1);
+    }
+  });
 
-    // Update the number of crimes for each neighborhood marker
-    map.neighborhood_markers.forEach(marker => {
-        const count = neighborhoodCountMap.get(marker.number);
-        marker.crimes = count || 0;
-        if (marker.marker) {
-            marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
-        }
-    });
+  // Update the number of crimes for each neighborhood marker
+  map.neighborhood_markers.forEach(marker => {
+    const count = neighborhoodCountMap.get(marker.number);
+    marker.crimes = count || 0;
+    if (marker.marker) {
+      marker.marker.setPopupContent(`Neighborhood ${marker.number}: Crimes - ${marker.crimes}`);
+    }
+  });
 }
 
 // FUNCTIONS
@@ -144,7 +152,7 @@ function initializeCrimes() {
     map.neighborhood_markers.forEach((each) => {
         const { location, number, marker } = each;
 
-        if (map.bounds.se.lat < location[0] && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
+        if (map.bounds.se.lat < location[0]  && map.bounds.nw.lat > location[0] && map.bounds.nw.lng > location[1] && map.bounds.se.lng < location[1]) {
             query.push(number);
         }
     });
@@ -177,7 +185,9 @@ function initializeCrimes() {
             map.crimes = data;
             updateNeighborhoodCrimeCount();
             map.crimes.forEach((crime) => {
+                //console.log(crime);
             });
+
             // TODO: Handle crime data as needed (e.g., display markers on the map)
         })
         .catch((error) => {
@@ -185,42 +195,6 @@ function initializeCrimes() {
             dialog_err.value = true;
         });
 }
-
-/**async function dataMarkers(crimeString) { //plotting markers for each of the crimes
-    console.log("datamarker on " + crimeString + " has been called");
-    let pattern = /XX/g;
-    let resultString = crimeString.replace(pattern, '00');
-    resultString = resultString + ", St. Paul, MN"
-    const location = resultString.trim(); // Get the entered location
-    console.log(location);
-    try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok.');
-        }
-
-        const data = await response.json();
-        if (data && data.length > 0) {
-            const { lat, lon, display_name } = data[0];
-            const redIcon = new L.Icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                shadowUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            });
-
-            const marker = L.marker([lat, lon], { icon: redIcon }).addTo(map.leaflet);
-            marker.bindPopup(display_name).openPopup();
-        } else {
-            console.log('Location not found');
-        }
-    } catch (error) {
-        console.error('Error fetching location:', error);
-    }
-}
-**/
 
 // Function called when user presses 'OK' on dialog box
 function closeDialog() {
@@ -337,184 +311,103 @@ const submitNewIncident = async () => {
     }
 };
 
-// Function to determine the row background color based on incident type
-const getIncidentType = (incidentType) => {
-    switch (incidentType) {
-        case "Simple Assault Dom.":
-        case "Agg. Assault Dom.":
-        case "HOMICIDE":
-        case "Rape":
-        case "Attempt":
-        case "Agg. Assault":
-        case "Rape, By Force":
-            return "violent-crime";
-        case "Robbery":
-        case "Theft":
-        case "Auto Theft":
-        case "Larceny":
-        case "Burglary":
-        case "Shoplifting":
-        case "Criminal Damage":
-            return "property-crime";
-        default:
-            return "other";
-    }
-};
-
-async function deleteIncident(incident) {
-    try {
-        const response = await fetch('http://your-api-endpoint.com/remove-incident', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                case_number: incident.case_number,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to remove incident');
-        }
-    } catch (error) {
-        console.error('Error removing incident:', error);
-        // Handle error: show error message or perform appropriate actions
-    }
-}
-
 </script>
 
 <template>
-    <!-- Fixed Search Bar -->
-    <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
-        <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
-            style="width: calc(100% - 100px);" />
-        <button class="button" type="button" style="float: right; margin-right: 10px; margin-top: 5px;"
-            @click="executeUpdateAndClose">Go</button>
-    </div>
-    <!-- Rest of your content -->
-    <div class="full-width" style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
-        <dialog id="rest-dialog" open>
-            <h1 class="dialog-header">St. Paul Crime REST API</h1>
-            <label class="dialog-label">URL: </label>
-            <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url"
-                placeholder="http://localhost:8000" />
-            <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
-            <br />
-            <button class="button" type="button" @click="closeDialog">OK</button>
-        </dialog>
-        <dialog id="location-dialog">
-            <h1 class="dialog-header">Enter Location</h1>
-            <label class="dialog-label">Location: </label>
-            <input id="dialog-location" class="dialog-input" type="text" v-model="new_location"
-                placeholder="Enter location" />
-            <button class="button" type="button" @click="executeUpdateAndClose">Go</button>
-            <!-- Call executeUpdateAndClose method -->
-        </dialog>
 
-        <dialog id="crime-form-dialog">
-            <h1 class="dialog-header">Add New Crime Incident</h1>
-            <form @submit.prevent="submitNewIncident">
-                <!-- Input fields for new crime incident -->
-                <label class="dialog-label">Case Number: </label>
-                <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
-
-                <label class="dialog-label">Date & Time: </label>
-                <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
-
-                <label class="dialog-label">Code: </label>
-                <input class="dialog-input" type="text" v-model="newIncident.code" required />
-
-                <label class="dialog-label">Incident: </label>
-                <input class="dialog-input" type="text" v-model="newIncident.incident" required />
-
-                <label class="dialog-label">Police Grid: </label>
-                <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
-
-                <label class="dialog-label">Neighborhood Number: </label>
-                <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
-
-                <label class="dialog-label">Block: </label>
-                <input class="dialog-input" type="text" v-model="newIncident.block" required />
-
-                <button class="button" type="submit">Submit</button>
-            </form>
-        </dialog>
-        <div class="grid-container">
-            <div class="grid-x grid-padding-x">
-                <div id="leafletmap" class="cell auto"></div>
-            </div>
+    <div>
+        <!-- Fixed Search Bar -->
+        <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
+            <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
+                style="width: calc(100% - 100px);" />
+            <button class="button" type="button" style="float: right; margin-right: 45px; margin-top: -55px;"
+                @click="executeUpdateAndClose">Go</button>
         </div>
-        <div class="grid-x grid-padding-x" style="margin: 2rem;">
-            <div class="cell large-11">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Case Number</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Incident</th>
-                            <th>Police Grid</th>
-                            <th>Neighborhood</th>
-                            <th>Block</th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="crime in map.crimes" :key="crime.case_number" :id=getIncidentType(crime.incident)>
-                            <td>{{ crime.case_number }}</td>
-                            <td>{{ crime.date }}</td>
-                            <td>{{ crime.time }}</td>
-                            <td>{{ crime.incident }}</td>
-                            <td>{{ crime.police_grid }}</td>
-                            <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
-                            <td>{{ crime.block }}</td>
-                            <td><button class="button" @click="dataMarkers(replaceDoubleX(crime.block))">Add Marker</button></td>
-                            <td><button class="button" @click="">Delete</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="cell large-1">
-                <button class="button" @click="openCrimeFormDialog">Add New Incident</button>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>
-                                <center>Legend</center>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr id="violent-crime" style="line-height: 2rem;">
-                            <center>Violent Crimes</center>
-                        </tr>
-                        <tr id="property-crime" style="line-height: 2rem;">
-                            <center>Property Crimes</center>
-                        </tr>
-                        <tr style="line-height: 2rem;">
-                            <center>Other</center>
-                        </tr>
-                    </tbody>
-                </table>
+
+        <!-- Rest of your content -->
+        <div style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
+            <dialog id="rest-dialog" open>
+                <h1 class="dialog-header">St. Paul Crime REST API</h1>
+                <label class="dialog-label">URL: </label>
+                <input id="dialog-url" class="dialog-input" type="url" v-model="crime_url"
+                    placeholder="http://localhost:8000" />
+                <p class="dialog-error" v-if="dialog_err">Error: must enter valid URL</p>
+                <br />
+                <button class="button" type="button" @click="closeDialog">OK</button>
+            </dialog>
+            <dialog id="location-dialog">
+                <h1 class="dialog-header">Enter Location</h1>
+                <label class="dialog-label">Location: </label>
+                <input id="dialog-location" class="dialog-input" type="text" v-model="new_location"
+                    placeholder="Enter location" />
+                <button class="button" type="button" @click="executeUpdateAndClose">Go</button>
+                <!-- Call executeUpdateAndClose method -->
+            </dialog>
+            <div class="grid-container">
+                <div class="grid-x grid-padding-x">
+                    <div id="leafletmap" class="cell auto"></div>
+                </div>
             </div>
         </div>
     </div>
+    <button class="button" @click="openCrimeFormDialog">Add New Incident</button>
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Case Number</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Incident</th>
+                    <th>Police Grid</th>
+                    <th>Neighborhood</th>
+                    <th>Block</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="crime in map.crimes" :key="crime.case_number">
+                    <td>{{ crime.case_number }}</td>
+                    <td>{{ crime.date }}</td>
+                    <td>{{ crime.time }}</td>
+                    <td>{{ crime.incident }}</td>
+                    <td>{{ crime.police_grid }}</td>
+                    <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
+                    <td>{{ crime.block }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <dialog id="crime-form-dialog">
+        <h1 class="dialog-header">Add New Crime Incident</h1>
+        <form @submit.prevent="submitNewIncident">
+            <!-- Input fields for new crime incident -->
+            <label class="dialog-label">Case Number: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
+
+            <label class="dialog-label">Date & Time: </label>
+            <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
+
+            <label class="dialog-label">Code: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.code" required />
+
+            <label class="dialog-label">Incident: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.incident" required />
+
+            <label class="dialog-label">Police Grid: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
+
+            <label class="dialog-label">Neighborhood Number: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
+
+            <label class="dialog-label">Block: </label>
+            <input class="dialog-input" type="text" v-model="newIncident.block" required />
+
+            <button class="button" type="submit">Submit</button>
+        </form>
+    </dialog>
+
 </template>
 <style>
-#violent-crime {
-    background-color: rgb(255, 136, 136);
-}
-
-#property-crime {
-    background-color: rgb(255, 222, 139);
-}
-
-td button {
-    width: 7rem;
-}
-
 #rest-dialog {
     width: 20rem;
     margin-top: 1rem;
