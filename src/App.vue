@@ -53,8 +53,29 @@ async function updateMap() {
         const data = await response.json();
 
         if (data && data.length > 0) {
-            const { lat, lon, display_name } = data[0];
+            let { lat, lon, display_name } = data[0];
 
+            if (lat > 45.008206) {
+                lat = 45.008206;
+                updateMap();
+                return;
+            }
+            if (lat < 44.883658) {
+                lat = 44.883658;
+                updateMap();
+                return;
+            }
+            if (lon < -93.217977) {
+                lon = -93.217977;
+                updateMap();
+                return;
+            }
+            if (lon > -92.993787) {
+                lon = -92.993787;
+                updateMap();
+                return;
+            }
+            
             // Check if there's an existing marker in extra_markers
             const existingMarker = map.extra_markers[0];
 
