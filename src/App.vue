@@ -60,23 +60,27 @@ async function updateMap() {
             let { lat, lon, display_name } = data[0];
 
             if (lat > 45.008206) {
-                lat = 45.008206;
-                updateMap();
+                //lat = 45.008206;
+                //updateMap();
+                alert("Please input an address within St. Paul");
                 return;
             }
             if (lat < 44.883658) {
-                lat = 44.883658;
-                updateMap();
+                //lat = 44.883658;
+                //updateMap();
+                alert("Please input an address within St. Paul");
                 return;
             }
             if (lon < -93.217977) {
-                lon = -93.217977;
-                updateMap();
+                //lon = -93.217977;
+                //updateMap();
+                alert("Please input an address within St. Paul");
                 return;
             }
             if (lon > -92.993787) {
-                lon = -92.993787;
-                updateMap();
+                //lon = -92.993787;
+                //updateMap();
+                alert("Please input an address within St. Paul");
                 return;
             }
             
