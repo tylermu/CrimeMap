@@ -18,7 +18,11 @@ app.options('*', cors());
 // Enable CORS for all routes
 app.use(cors());
 
-
+app.use(cors({
+    origin: 'http://localhost:8000', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 /********************************************************************
  ***   DATABASE FUNCTIONS                                         ***
  ********************************************************************/
