@@ -450,14 +450,6 @@ async function dataMarkers(string, incident, date, time) {
                 console.log("Marker already exists")
             }
 
-            // Create a new marker at the entered location
-            var newMarker = L.marker([lat, lon], {icon: L.divIcon({className: 'red-marker'})}).addTo(map.leaflet);
-            newMarker.bindPopup(location).openPopup();
-            let count_extra = map.extra_markers2.size()-1;
-            map.extra_markers2[count_extra] = { location: [lat, lon], marker: newMarker };
-
-
-
         } else {
             console.log('Location not found');
             alert("Marker from the database cannot be attributed to a valid address");
