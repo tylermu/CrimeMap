@@ -408,7 +408,7 @@ async function dataMarkers(string, incident, date, time) {
                 newMarker.setLatLng([lat, lon]).update();
 
             // Create a button with an onclick event
-            const deleteButton = `<button id="marker" class="button alert" @click="deleteMarker(${newMarker})">Delete</button>`;
+            const deleteButton = `<button id="marker" class="button alert" onclick="deleteMarker(${lat}, ${lon})">Delete</button>`;
 
             // Combine location and button HTML
             const popupContent = `<div>${incident}<br>${date}<br>${time}</div><div>${deleteButton}</div>`;
@@ -430,10 +430,15 @@ async function dataMarkers(string, incident, date, time) {
     }
 }
 
-function deleteMarker(marker2Die) {
-    const indexToRemove = extra_markers2.findIndex(item => item.marker === marker2Die);
-    map.extra_markers2.splice(indexToRemove, 1);
-}
+window.deleteMarker = async function(lat, lon) {
+    console.log("Button clicked yay");
+    const indexToRemove = map.extra_markers2.findIndex(item => item.location[0] === lat && item.location[1] === lon);
+
+    if (indexToRemove !== -1) {
+        const deletedMarker = map.extra_markers2.splice(indexToRemove, 1)[0];
+        map.leaflet.removeLayer(deletedMarker.marker);
+    }
+};
 
 async function deleteIncident(incident) {
     try {
