@@ -400,27 +400,25 @@ async function dataMarkers(string) {
 
         if (data && data.length > 0) {
             let { lat, lon, display_name } = data[0];
-            map.extra_markers2.forEach((marker) => {
-            if(lat == marker.lat && lon ==  marker.lon) {
-                return;
+            const existingMarker = map.extra_markers2.find(marker => marker.location[0] == lat && marker.location[1] == lon);
+            if (!existingMarker) {
+                // Create a new marker at the entered location
+                var newMarker = L.marker([lat, lon]).addTo(map.leaflet);
+                newMarker._icon.classList.add("huechange");
+
+                // Create a button with an onclick event
+                const deleteButton = '<button id="marker" class="button alert" @click="deleteMarker()">Delete</button>';
+
+                // Combine location and button HTML
+                const popupContent = `<div>${location}</div><div><center>${deleteButton}</center></div>`;
+
+                newMarker.bindPopup(popupContent).openPopup();
+                let count_extra = map.extra_markers2.length;
+                map.extra_markers2[count_extra] = { location: [lat, lon], marker: newMarker };
+
+            } else {
+                console.log("Marker already exists")
             }
-            });
-
-            // Create a new marker at the entered location
-            var newMarker = L.marker([lat, lon]).addTo(map.leaflet);
-            newMarker._icon.classList.add("huechange");
-
-            // Create a button with an onclick event
-            const deleteButton = '<button id="marker" class="button alert" @click="deleteMarker()">Delete</button>';
-
-            // Combine location and button HTML
-            const popupContent = `<div>${location}</div><div><center>${deleteButton}</center></div>`;
-
-            newMarker.bindPopup(popupContent).openPopup();
-            let count_extra = map.extra_markers2.size()-1;
-            map.extra_markers2[count_extra] = { location: [lat, lon], marker: newMarker };
-
-
 
         } else {
             console.log('Location not found');
