@@ -316,8 +316,8 @@ const openDataFormDialog = () => {
 };
 const submitNewIncident = async () => {
     try {
-        const response = await fetch('http://your-api-endpoint.com/new-incident', {
-            method: 'POST',
+        const response = await fetch(crime_url.value + '/new-incident', {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -334,12 +334,9 @@ const submitNewIncident = async () => {
 
         if (!response.ok) {
             throw new Error('Failed to add new incident');
+        } else {
+            console.log("New incident has been submitted")
         }
-
-        // Process the response or handle success as needed
-        // For instance, you might want to update your local data or show a success message
-        // Example: const result = await response.json();
-        // ... handle success or update local data ...
 
         // Close the dialog or perform any other necessary action upon successful submission
         const crimeFormDialog = document.getElementById('crime-form-dialog');
@@ -354,6 +351,8 @@ const submitNewIncident = async () => {
         // Handle error: show error message or perform appropriate actions
     }
 };
+
+
 
 // Function to determine the row background color based on incident type
 const getIncidentType = (incidentType) => {
@@ -415,7 +414,7 @@ async function dataMarkers(string) {
 
 async function deleteIncident(incident) {
     try {
-        const response = await fetch('http://localhost:8001/remove-incident', {
+        const response = await fetch(crime_url.value + '/remove-incident', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
