@@ -86,23 +86,6 @@ async function updateMap() {
                 //lon = -92.993787;
                 //updateMap();
                 alert("Please input an address within St. Paul");
-                lat = 45.008206;
-                updateMap();
-                return;
-            }
-            if (lat < 44.883658) {
-                lat = 44.883658;
-                updateMap();
-                return;
-            }
-            if (lon < -93.217977) {
-                lon = -93.217977;
-                updateMap();
-                return;
-            }
-            if (lon > -92.993787) {
-                lon = -92.993787;
-                updateMap();
                 return;
             }
             
