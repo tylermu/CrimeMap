@@ -396,11 +396,23 @@ async function dataMarkers(string) {
 
         if (data && data.length > 0) {
             let { lat, lon, display_name } = data[0];
+            map.extra_markers2.forEach((marker) => {
+            if(lat == marker.lat && lon ==  marker.lon) {
+                return;
+            }
+            });
 
             // Create a new marker at the entered location
             var newMarker = L.marker([lat, lon]).addTo(map.leaflet);
             newMarker._icon.classList.add("huechange");
-            newMarker.bindPopup(location).openPopup();
+
+            // Create a button with an onclick event
+            const deleteButton = '<button id="marker" class="button alert" @click="deleteMarker()">Delete</button>';
+
+            // Combine location and button HTML
+            const popupContent = `<div>${location}</div><div><center>${deleteButton}</center></div>`;
+
+            newMarker.bindPopup(popupContent).openPopup();
             let count_extra = map.extra_markers2.size()-1;
             map.extra_markers2[count_extra] = { location: [lat, lon], marker: newMarker };
 
@@ -413,6 +425,11 @@ async function dataMarkers(string) {
     } catch (error) {
         console.error('Error fetching location:', error);
     }
+}
+
+function deleteMarker() {
+    // Remove marker from array
+    // and remove marker using leaflet function
 }
 
 async function deleteIncident(incident) {
@@ -438,10 +455,6 @@ async function deleteIncident(incident) {
         // Handle error: show error message or perform appropriate actions
     }
 }
-
-
-
-
 
 </script>
 
