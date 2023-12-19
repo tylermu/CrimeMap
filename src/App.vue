@@ -333,9 +333,11 @@ const submitNewIncident = async () => {
         });
 
         if (!response.ok) {
+            alert("Incident cannot be added, make sure case_number is unique and all fields are filled in.")
             throw new Error('Failed to add new incident');
         } else {
             console.log("New incident has been submitted")
+            alert("A new incident with the case number: " + newIncident.case_number + " has been added!");
         }
 
         // Close the dialog or perform any other necessary action upon successful submission
