@@ -415,24 +415,29 @@ async function dataMarkers(string) {
 
 async function deleteIncident(incident) {
     try {
-        const response = await fetch('http://your-api-endpoint.com/remove-incident', {
-            method: 'POST',
+        const response = await fetch('http://localhost:8001/remove-incident', {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                case_number: incident.case_number,
+                case_number: incident,
             }),
         });
 
         if (!response.ok) {
             throw new Error('Failed to remove incident');
+        } else {
+            alert("Case ID: " + incident + " has been removed from the database");
+            initializeCrimes();
         }
     } catch (error) {
         console.error('Error removing incident:', error);
         // Handle error: show error message or perform appropriate actions
     }
 }
+
+
 
 
 

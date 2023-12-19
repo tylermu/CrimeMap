@@ -8,9 +8,14 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const db_filename = path.join(__dirname, 'db', 'stpaul_crime.sqlite3');
 
 const port = 8001;
-
 let app = express();
+
 app.use(express.json());
+
+// Configure CORS to handle preflight requests
+app.options('*', cors());
+
+// Enable CORS for all routes
 app.use(cors());
 
 
