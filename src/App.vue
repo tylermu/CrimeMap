@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue';
 let crime_url = ref('');
 let dialog_err = ref(false);
 let new_location = ref('')
+const selectedNeighborhoods = ref([]);
 const selectedIncidentTypes = ref([]);
 const startDate = ref('');
 const endDate = ref('');
@@ -285,6 +286,12 @@ const neighborhoodData = [
     { "id": 17, "name": "Capitol River" }
 ];
 
+const incidentType = [
+    { "id": 1, "name": "violent-crime" },
+    { "id": 2, "name": "property-crime" },
+    { "id": 3, "name": "other" }
+];
+
 const neighborhoodMap = new Map(neighborhoodData.map(entry => [entry.id, entry.name]));
 console.log(neighborhoodMap)
 
@@ -440,8 +447,48 @@ async function deleteIncident(incident) {
     }
 }
 
+const getNeighborhoodIDFromName = (neighborhoodName) => {
+    const neighborhood = neighborhoodData.find((n) => n.name === neighborhoodName);
+    return neighborhood ? neighborhood.id : null;
+};
 
+const updateData = async () => {
+    const startDateValue = startDate.value;
+    const endDateValue = endDate.value;
+    const selectedIncidentTypesValue = selectedIncidentTypes.value;
+    const selectedNeighborhoodsValue = selectedNeighborhoods.value;
+    const maxIncidentsValue = maxIncidents.value;
 
+    const apiUrl = `${crime_url.value}/incidents?start_date=${startDateValue}&end_date=${endDateValue}`;
+
+    const incidentTypesQuery = selectedIncidentTypesValue.length > 0 ? `&code=${selectedIncidentTypesValue.join(',')}` : '';
+    const neighborhoodIDs = selectedNeighborhoodsValue.map(getNeighborhoodIDFromName);
+
+    const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `\"${id}\"`);
+
+    const neighborhoodsQuery = quotedNeighborhoodIDs.length > 0 ? `&neighborhood_number=${quotedNeighborhoodIDs.join(',')}` : '';
+
+    const maxIncidentsQuery = `&limit=${maxIncidentsValue}`;
+
+    const finalUrl = `${apiUrl}${incidentTypesQuery}${neighborhoodsQuery}${maxIncidentsQuery}`;
+    console.log('Final URL:', finalUrl);
+
+    try {
+        const response = await fetch(finalUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        // Handle the fetched data, update display or state as needed
+        // For example:
+        map.crimes = data;
+        updateNeighborhoodCrimeCount(); // Update crime count for neighborhoods
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        // Handle error: show error message or perform appropriate actions
+    }
+};
 
 
 </script>
@@ -532,13 +579,15 @@ async function deleteIncident(incident) {
     <dialog id="data-form-dialog">
         <h1 class="dialog-header">Filter Data</h1>
         <div style="margin-top: 50px;">
-      <!-- Incident Type Filter -->
-      <div v-for="type in incidentTypes" :key="type.id">
+        
+            <label>Incident Type:</label>
+    
+      <div v-for="type in incidentType" :key="type.id">
         <input type="checkbox" :value="type.name" v-model="selectedIncidentTypes" @change="updateData" />
         <label>{{ type.name }}</label>
       </div>
-
-      <!-- Neighborhood Filter -->
+     
+      <label>Neighborhood:</label>
       <div v-for="neighborhood in neighborhoodData" :key="neighborhood.id">
         <input type="checkbox" :value="neighborhood.name" v-model="selectedNeighborhoods" @change="updateData" />
         <label>{{ neighborhood.name }}</label>
