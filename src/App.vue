@@ -287,8 +287,8 @@ const neighborhoodData = [
 ];
 
 const incidentType = [
-    { "id": 1, "name": "violent-crime" },
-    { "id": 2, "name": "property-crime" },
+    { "id": "100", "name": "violent-crime" },
+    { "id": "", "name": "property-crime" },
     { "id": 3, "name": "other" }
 ];
 
@@ -464,9 +464,9 @@ const updateData = async () => {
     const incidentTypesQuery = selectedIncidentTypesValue.length > 0 ? `&code=${selectedIncidentTypesValue.join(',')}` : '';
     const neighborhoodIDs = selectedNeighborhoodsValue.map(getNeighborhoodIDFromName);
 
-    const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `\"${id}\"`);
+    const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `${id}`);
 
-    const neighborhoodsQuery = quotedNeighborhoodIDs.length > 0 ? `&neighborhood_number=${quotedNeighborhoodIDs.join(',')}` : '';
+    const neighborhoodsQuery = quotedNeighborhoodIDs.length > 0 ? `&neighborhood=${quotedNeighborhoodIDs.join(',')}` : '';
 
     const maxIncidentsQuery = `&limit=${maxIncidentsValue}`;
 
@@ -583,7 +583,7 @@ const updateData = async () => {
             <label>Incident Type:</label>
     
       <div v-for="type in incidentType" :key="type.id">
-        <input type="checkbox" :value="type.name" v-model="selectedIncidentTypes" @change="updateData" />
+        <input type="checkbox" :value="type.id" v-model="selectedIncidentTypes" @change="updateData" />
         <label>{{ type.name }}</label>
       </div>
      
