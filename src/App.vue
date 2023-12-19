@@ -561,12 +561,14 @@ const updateData = async () => {
     <div>
         <!-- Fixed Search Bar -->
         <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
+            <a href="../about.html">
+                <button class="button secondary" type="button" style="float: left; width: 5rem; font-weight: 800;">About</button>
+            </a>
             <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
-                style="width: calc(100% - 100px);" />
-            <button class="button" type="button" style="float: right; margin-right: 45px; margin-top: -55px;"
+                style="width: calc(100% - 10rem); margin-left: 5rem;" />
+            <button class="button" type="button" style="float: right; width: 5rem; margin-top: -55px;"
                 @click="executeUpdateAndClose">Go</button>
         </div>
-        
 
         <!-- Rest of your content -->
         <div style="margin-top: 50px;"> <!-- Add margin to accommodate the fixed search bar -->
