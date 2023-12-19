@@ -398,7 +398,8 @@ async function dataMarkers(string) {
             let { lat, lon, display_name } = data[0];
 
             // Create a new marker at the entered location
-            var newMarker = L.marker([lat, lon], {icon: L.divIcon({className: 'red-marker'})}).addTo(map.leaflet);
+            var newMarker = L.marker([lat, lon]).addTo(map.leaflet);
+            newMarker._icon.classList.add("huechange");
             newMarker.bindPopup(location).openPopup();
             let count_extra = map.extra_markers2.size()-1;
             map.extra_markers2[count_extra] = { location: [lat, lon], marker: newMarker };
@@ -646,5 +647,8 @@ tr td {
     border-radius: 50%;
     width: 3vw;
     height: 3vh;
+}
+img.huechange { 
+    filter: hue-rotate(120deg); 
 }
 </style>
