@@ -342,6 +342,7 @@ const submitNewIncident = async () => {
         } else {
             console.log("New incident has been submitted")
             alert("A new incident with the case number: " + newIncident.case_number + " has been added!");
+            initializeCrimes();
         }
 
         // Close the dialog or perform any other necessary action upon successful submission
@@ -431,12 +432,22 @@ async function dataMarkers(string, incident, date, time) {
 }
 
 window.deleteMarker = async function(lat, lon) {
+    let marker2count = 0;
+    let goal = -1;
     console.log("Button clicked yay");
-    const indexToRemove = map.extra_markers2.findIndex(item => item.location[0] === lat && item.location[1] === lon);
-
-    if (indexToRemove !== -1) {
-        const deletedMarker = map.extra_markers2.splice(indexToRemove, 1)[0];
+    map.extra_markers2.forEach((each) => {
+        const { location, number, marker } = each;
+        if (lat == location[0] && lon == location[1]) {
+            goal = marker2count;
+        } else {
+            marker2count++;
+        }
+    });
+    console.log(goal);
+    if (goal !== -1) {
+        const deletedMarker = map.extra_markers2.splice(goal, 1)[0];
         map.leaflet.removeLayer(deletedMarker.marker);
+        initializeCrimes();
     }
 };
 
