@@ -384,7 +384,7 @@ const getIncidentType = (incidentType) => {
     }
 };
 
-async function dataMarkers(string) {
+async function dataMarkers(string, incident, date, time) {
     const resultString = string.replace(/XX/g, '00');
     let location = resultString.trim(); // Get the entered location
     location = location + ", St. Paul, MN"
@@ -406,11 +406,11 @@ async function dataMarkers(string) {
                 var newMarker = L.marker([lat, lon]).addTo(map.leaflet);
                 newMarker._icon.classList.add("huechange");
 
-                // Create a button with an onclick event
-                const deleteButton = '<button id="marker" class="button alert" @click="deleteMarker()">Delete</button>';
+            // Create a button with an onclick event
+            const deleteButton = `<button id="marker" class="button alert" @click="deleteMarker(${newMarker})">Delete</button>`;
 
-                // Combine location and button HTML
-                const popupContent = `<div>${location}</div><div><center>${deleteButton}</center></div>`;
+            // Combine location and button HTML
+            const popupContent = `<div>${incident}<br>${date}<br>${time}</div><div>${deleteButton}</div>`;
 
                 newMarker.bindPopup(popupContent).openPopup();
                 let count_extra = map.extra_markers2.length;
@@ -429,9 +429,9 @@ async function dataMarkers(string) {
     }
 }
 
-function deleteMarker() {
-    // Remove marker from array
-    // and remove marker using leaflet function
+function deleteMarker(marker2Die) {
+    const indexToRemove = extra_markers2.findIndex(item => item.marker === marker2Die);
+    map.extra_markers2.splice(indexToRemove, 1);
 }
 
 async function deleteIncident(incident) {
@@ -521,7 +521,7 @@ async function deleteIncident(incident) {
                         <td>{{ crime.police_grid }}</td>
                         <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                         <td>{{ crime.block }}</td>
-                        <td><button class="button secondary" @click="dataMarkers(crime.block)">Add Marker</button></td>
+                        <td><button class="button secondary" @click="dataMarkers(crime.block, crime.incident, crime.date, crime.time)">Add Marker</button></td>
                         <td><button class="button alert" @click="deleteIncident(crime.case_number)">Delete</button></td>
                     </tr>
                 </tbody>
