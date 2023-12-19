@@ -405,6 +405,7 @@ async function dataMarkers(string) {
                 // Create a new marker at the entered location
                 var newMarker = L.marker([lat, lon]).addTo(map.leaflet);
                 newMarker._icon.classList.add("huechange");
+                newMarker.setLatLng([lat, lon]).update();
 
                 // Create a button with an onclick event
                 const deleteButton = '<button id="marker" class="button alert" @click="deleteMarker()">Delete</button>';
