@@ -479,7 +479,7 @@ const updateData = async () => {
 
     const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `${id}`);
 
-    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18,${quotedNeighborhoodIDs.join(',')}` +',' + changes : '';
+    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18${quotedNeighborhoodIDs.join(',')}` +',' + changes : '';
     console.log(neighborhoodsQuery)
 
     const maxIncidentsQuery = `&limit=${maxIncidentsValue}`;
@@ -496,7 +496,9 @@ const updateData = async () => {
         // Handle the fetched data, update display or state as needed
         // For example:
         map.crimes = data;
-        updateNeighborhoodCrimeCount(); // Update crime count for neighborhoods
+        updateNeighborhoodCrimeCount();// Update crime count for neighborhoods
+
+        
     } catch (error) {
         console.error('Error fetching data:', error);
         // Handle error: show error message or perform appropriate actions
@@ -618,9 +620,9 @@ const updateData = async () => {
       <input type="number" v-model="maxIncidents" @change="updateData" />
 
       <!-- Update Button -->
-      <button class="button" @click="updateData">Update</button>
+      <button class="button" @click="this.open = false">Press escape to close filter options</button>
     </div>
-    </dialog>
+    </dialog> 
     <dialog id="crime-form-dialog">
         <h1 class="dialog-header">Add New Crime Incident</h1>
         <form @submit.prevent="submitNewIncident">
