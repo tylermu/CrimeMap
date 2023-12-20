@@ -479,7 +479,7 @@ const updateData = async () => {
 
     const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `${id}`);
 
-    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18${quotedNeighborhoodIDs.join(',')}` +',' + changes : '';
+    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18,${quotedNeighborhoodIDs.join(',')}` +',' + changes : '';
     console.log(neighborhoodsQuery)
 
     const maxIncidentsQuery = `&limit=${maxIncidentsValue}`;
