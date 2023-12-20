@@ -7,6 +7,7 @@ const selectedNeighborhoods = ref([]);
 const selectedIncidentTypes = ref([]);
 const startDate = ref('');
 const endDate = ref('');
+let changes = "";
 const maxIncidents = ref(1000); // Default value
 let map = reactive(
     {
@@ -150,7 +151,13 @@ onMounted(() => {
     function updateLocation() {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
-        initializeCrimes(); //On map move, update database
+
+     initializeCrimes(); // On map move, update database
+
+    // Reapply filters if they were previously applied
+    
+     updateData();
+    
 
 
         // Update the location input with the new coordinates
@@ -196,13 +203,12 @@ function initializeCrimes() {
             query.push(number);
         }
     });
-    let changes = ""
     let count = 0
     if (query.length != 0) {
         query.forEach((number) => {
             console.log("In view is " + number)
             if (count == 0) {
-                changes = "&neighborhood="
+                changes = ""
             } else {
                 changes = changes + ","
             }
@@ -214,7 +220,7 @@ function initializeCrimes() {
         //we need to have this return and empty table
     }
     console.log(changes);
-    fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31` + changes)
+    fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31&neighborhood=` + changes)
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -468,22 +474,20 @@ const updateData = async () => {
     const selectedNeighborhoodsValue = selectedNeighborhoods.value;
     const maxIncidentsValue = maxIncidents.value;
 
-    const apiUrl = `${crime_url.value}/incidents?start_date=${startDateValue}&end_date=${endDateValue}`;
-
     const incidentTypesQuery = selectedIncidentTypesValue.length > 0 ? `&code=${selectedIncidentTypesValue.join(',')}` : '';
     const neighborhoodIDs = selectedNeighborhoodsValue.map(getNeighborhoodIDFromName);
 
     const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `${id}`);
 
-    const neighborhoodsQuery = quotedNeighborhoodIDs.length > 0 ? `&neighborhood=${quotedNeighborhoodIDs.join(',')}` : '';
+    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18${quotedNeighborhoodIDs.join(',')}` +',' + changes : '';
+    console.log(neighborhoodsQuery)
 
     const maxIncidentsQuery = `&limit=${maxIncidentsValue}`;
 
-    const finalUrl = `${apiUrl}${incidentTypesQuery}${neighborhoodsQuery}${maxIncidentsQuery}`;
-    console.log('Final URL:', finalUrl);
+    const apiUrl = `${crime_url.value}/incidents?start_date=${startDateValue}&end_date=${endDateValue}${incidentTypesQuery}${neighborhoodsQuery}${maxIncidentsQuery}`;
 
     try {
-        const response = await fetch(finalUrl);
+        const response = await fetch(apiUrl); fetch(`${crime_url.value}/incidents?start_date=2023-01-01&end_date=2023-12-31&neighborhood=` + changes)
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
