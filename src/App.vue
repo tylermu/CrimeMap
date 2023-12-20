@@ -88,7 +88,7 @@ async function updateMap() {
                 alert("Please input an address within St. Paul");
                 return;
             }
-            
+
             // Check if there's an existing marker in extra_markers
             const existingMarker = map.extra_markers[0];
 
@@ -300,7 +300,7 @@ const incidentType = [
     { "id": "700,710,711,712,720,721,722,730,731,732", "name": "Auto Theft" },
     { "id": "500,510,511,513,515,516,520,521,523,525,526,530,531,533,535,536,540,541,543,545,546,550,551,553,555,556,560,561,563,565,566", "name": "Burglary" },
     { "id": "1400,1401,1410,,1415,1416,1420,1425,1426,1430,1435,1436", "name": "Property Damage" },
-    {"id": "900,901,903,905,911,913,915,921,922,923,925,931,933,941,942,951,961,971,972,975,981,982", "name": "Arson" },
+    { "id": "900,901,903,905,911,913,915,921,922,923,925,931,933,941,942,951,961,971,972,975,981,982", "name": "Arson" },
     { "id": "1800,1810,1811,1812,1813,1814,,1815,1820,1822,1823,1824,1825,1830,1835,1840,1841,1842,1843,1844,1845,1850,1855,1860,1865,1870,1880,1885", "name": "Narotics" },
     { "id": "2619,3100,9954,9959,9986", "name": "other" }
 ];
@@ -428,11 +428,11 @@ async function dataMarkers(string, incident, date, time) {
                 newMarker._icon.classList.add("huechange");
                 newMarker.setLatLng([lat, lon]).update();
 
-            // Create a button with an onclick event
-            const deleteButton = `<button id="marker" class="button alert" onclick="deleteMarker(${lat}, ${lon})">Delete</button>`;
+                // Create a button with an onclick event
+                const deleteButton = `<button id="marker" class="button alert" onclick="deleteMarker(${lat}, ${lon})">Delete</button>`;
 
-            // Combine location and button HTML
-            const popupContent = `<div>${incident}<br>${date}<br>${time}</div><div>${deleteButton}</div>`;
+                // Combine location and button HTML
+                const popupContent = `<div>${incident}<br>${date}<br>${time}</div><div>${deleteButton}</div>`;
 
                 newMarker.bindPopup(popupContent).openPopup();
                 let count_extra = map.extra_markers2.length;
@@ -451,7 +451,7 @@ async function dataMarkers(string, incident, date, time) {
     }
 }
 
-window.deleteMarker = async function(lat, lon) {
+window.deleteMarker = async function (lat, lon) {
     let marker2count = 0;
     let goal = -1;
     console.log("Button clicked yay");
@@ -546,7 +546,8 @@ const updateData = async () => {
         <!-- Fixed Search Bar -->
         <div style="position: fixed; top: 0; width: 100%; z-index: 999;">
             <a href="../about.html">
-                <button class="button secondary" type="button" style="float: left; width: 5rem; font-weight: 800;">About</button>
+                <button class="button secondary" type="button"
+                    style="float: left; width: 5rem; font-weight: 800;">About</button>
             </a>
             <input id="dialog-location" class="dialog-input" type="text" v-model="new_location" placeholder="Enter location"
                 style="width: calc(100% - 10rem); margin-left: 5rem;" />
@@ -592,8 +593,10 @@ const updateData = async () => {
                         <th>Police Grid</th>
                         <th>Neighborhood</th>
                         <th>Block</th>
-                        <th><button class="button" style="width: 7rem;" @click="openDataFormDialog">Filter Data</button></th>
-                        <th><button class="button" style="width: 7rem;" @click="openCrimeFormDialog">Add New Incident</button></th>
+                        <th><button class="button" style="width: 7rem;" @click="openDataFormDialog">Filter Data</button>
+                        </th>
+                        <th><button class="button" style="width: 7rem;" @click="openCrimeFormDialog">Add New
+                                Incident</button></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -605,7 +608,9 @@ const updateData = async () => {
                         <td>{{ crime.police_grid }}</td>
                         <td>{{ neighborhoodMap.get(crime.neighborhood_number) }}</td>
                         <td>{{ crime.block }}</td>
-                        <td><button class="button secondary" @click="dataMarkers(crime.block, crime.incident, crime.date, crime.time)">Add Marker</button></td>
+                        <td><button class="button secondary"
+                                @click="dataMarkers(crime.block, crime.incident, crime.date, crime.time)">Add
+                                Marker</button></td>
                         <td><button class="button alert" @click="deleteIncident(crime.case_number)">Delete</button></td>
                     </tr>
                 </tbody>
@@ -619,69 +624,47 @@ const updateData = async () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td id="violent-crime" style="line-height: 1.4rem;">Violent Crimes</td></tr>
-                    <tr><td id="property-crime" style="line-height: 1.4rem;">Property Crimes</td></tr>
-                    <tr><td id="other" style="line-height: 1.4rem;">Other</td></tr>
+                    <tr>
+                        <td id="violent-crime" style="line-height: 1.4rem;">Violent Crimes</td>
+                    </tr>
+                    <tr>
+                        <td id="property-crime" style="line-height: 1.4rem;">Property Crimes</td>
+                    </tr>
+                    <tr>
+                        <td id="other" style="line-height: 1.4rem;">Other</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
     <dialog id="data-form-dialog">
         <h1 class="dialog-header">Filter Data</h1>
-        <form @submit.prevent="submitNewIncident">
-            <!-- Input fields for new crime incident -->
-            <label class="dialog-label">Case Number: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.case_number" required />
-
-            <label class="dialog-label">Date & Time: </label>
-            <input class="dialog-input" type="datetime-local" v-model="newIncident.date_time" required />
-
-            <label class="dialog-label">Code: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.code" required />
-
-            <label class="dialog-label">Incident: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.incident" required />
-
-            <label class="dialog-label">Police Grid: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.police_grid" required />
-
-            <label class="dialog-label">Neighborhood Number: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.neighborhood_number" required />
-
-            <label class="dialog-label">Block: </label>
-            <input class="dialog-input" type="text" v-model="newIncident.block" required />
-
-            <button class="button success" type="submit">Submit</button>
-        </form>
-        <div style="margin-top: 50px;">
-        
+        <div style="margin-top: 10px;">
             <label>Incident Type:</label>
-    
-      <div v-for="type in incidentType" :key="type.id">
-        <input type="checkbox" :value="type.id" v-model="selectedIncidentTypes" @change="updateData" />
-        <label>{{ type.name }}</label>
-      </div>
-     
-      <label>Neighborhood:</label>
-      <div v-for="neighborhood in neighborhoodData" :key="neighborhood.id">
-        <input type="checkbox" :value="neighborhood.name" v-model="selectedNeighborhoods" @change="updateData" />
-        <label>{{ neighborhood.name }}</label>
-      </div>
+            <div v-for="type in incidentType" :key="type.id">
+                <input type="checkbox" :value="type.id" v-model="selectedIncidentTypes" @change="updateData" />
+                <label>{{ type.name }}</label>
+            </div>
+            <label>Neighborhood:</label>
+            <div v-for="neighborhood in neighborhoodData" :key="neighborhood.id">
+                <input type="checkbox" :value="neighborhood.name" v-model="selectedNeighborhoods" @change="updateData" />
+                <label>{{ neighborhood.name }}</label>
+            </div>
 
-      <!-- Date Range Selector -->
-      <label>Start Date:</label>
-      <input type="date" v-model="startDate" @change="updateData" />
+            <!-- Date Range Selector -->
+            <label>Start Date:</label>
+            <input type="date" v-model="startDate" @change="updateData" />
 
-      <label>End Date:</label>
-      <input type="date" v-model="endDate" @change="updateData" />
+            <label>End Date:</label>
+            <input type="date" v-model="endDate" @change="updateData" />
 
-      <!-- Max Incidents Input -->
-      <label>Max Incidents:</label>
-      <input type="number" v-model="maxIncidents" @change="updateData" />
+            <!-- Max Incidents Input -->
+            <label>Max Incidents:</label>
+            <input type="number" v-model="maxIncidents" @change="updateData" />
 
-      <!-- Update Button -->
-      <button class="button" @click="updateData">Update</button>
-    </div>
+            <!-- Update Button -->
+            <button class="button success" @click="updateData">Submit</button>
+        </div>
     </dialog>
     <dialog id="crime-form-dialog">
         <h1 class="dialog-header">Add New Crime Incident</h1>
@@ -713,7 +696,6 @@ const updateData = async () => {
     </dialog>
 </template>
 <style>
-
 #violent-crime {
     background-color: rgb(255, 136, 136);
 }
@@ -725,6 +707,7 @@ const updateData = async () => {
 td button {
     width: 7rem;
 }
+
 th button {
     font-weight: 800;
 }
@@ -770,13 +753,14 @@ tr td {
     font-size: 1rem;
     color: #D32323;
 }
+
 .red-marker {
     background-color: blueviolet;
     border-radius: 50%;
     width: 3vw;
     height: 3vh;
 }
-img.huechange { 
-    filter: hue-rotate(120deg); 
-}
-</style>
+
+img.huechange {
+    filter: hue-rotate(120deg);
+}</style>
