@@ -156,12 +156,12 @@ onMounted(() => {
         // Get the map's center coordinates after panning/zooming
         const center = map.leaflet.getCenter();
 
-     initializeCrimes(); // On map move, update database
+        initializeCrimes(); // On map move, update database
 
-    // Reapply filters if they were previously applied
-    
-     updateData();
-    
+        // Reapply filters if they were previously applied
+
+        updateData();
+
 
 
         // Update the location input with the new coordinates
@@ -518,7 +518,7 @@ const updateData = async () => {
 
     const quotedNeighborhoodIDs = neighborhoodIDs.map(id => `${id}`);
 
-    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18${quotedNeighborhoodIDs.join(',')}` +',' + changes : '';
+    const neighborhoodsQuery = quotedNeighborhoodIDs.length >= 0 ? `&neighborhood=18${quotedNeighborhoodIDs.join(',')}` + ',' + changes : '';
     console.log(neighborhoodsQuery)
 
     const maxIncidentsQuery = `&limit=${maxIncidentsValue}`;
@@ -535,7 +535,9 @@ const updateData = async () => {
         // Handle the fetched data, update display or state as needed
         // For example:
         map.crimes = data;
-        updateNeighborhoodCrimeCount(); // Update crime count for neighborhoods
+        updateNeighborhoodCrimeCount();// Update crime count for neighborhoods
+
+
     } catch (error) {
         console.error('Error fetching data:', error);
         // Handle error: show error message or perform appropriate actions
@@ -667,7 +669,7 @@ const updateData = async () => {
             <input type="number" v-model="maxIncidents" @change="updateData" />
 
             <!-- Update Button -->
-            <button class="button success" @click="updateData">Submit</button>
+            <button class="button" @click="this.open = false">Press escape to close filter options</button>
         </div>
     </dialog>
     <dialog id="crime-form-dialog">
@@ -767,4 +769,5 @@ tr td {
 
 img.huechange {
     filter: hue-rotate(120deg);
-}</style>
+}
+</style>
