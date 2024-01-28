@@ -13,12 +13,12 @@ automatically communicate with the API to remove and add data to the database.
 
 ### Dependencies
 
-* This program should run on any Javascript/HTML compiler, it was ran on Visual Studio Code when being developed
+* This program should run on any Javascript/HTML compiler, it was ran on Visual Studio Code when being developed.
 * All the libraries necessary to run this program are embeded in the code and do not need to be downloaded from elsewhere.
 
 ### Installing
 
-* To download the program, pull the entire repository into your preferred compiler
+* To download the program, pull the entire repository into your preferred compiler.
 * Because the database file is too large to upload to github, do the following steps to get the database extracted. Find the stpaul_crime database.zip, and extract the sqlite3 file from inside. When you have the sqlite3 file you
   can delete the compressed folder. Now, create a new folder called "db" and drag the sqlite3 database into the folder. Now your database is setup and should be automatically connected via the path on the App.vue file.
 
