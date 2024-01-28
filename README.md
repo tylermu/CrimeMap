@@ -13,7 +13,7 @@ automatically communicate with the API to remove and add data to the database.
 
 ### Dependencies
 
-* This program should run on any Javascript/HTML compiler, it was ran on VSCode when being developed
+* This program should run on any Javascript/HTML compiler, it was ran on Visual Studio Code when being developed
 * All the libraries necessary to run this program are embeded in the code and do not need to be downloaded from elsewhere.
 
 ### Installing
