@@ -46,9 +46,9 @@ automatically communicate with the API to remove and add data to the database.
 
 Contributors names
 
-Dylan Kraft
-Khalid Mohamed
-Thomas Marrinan
+* Dylan Kraft
+* Khalid Mohamed
+* Thomas Marrinan
 
 
 ## Acknowledgments
