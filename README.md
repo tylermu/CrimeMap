@@ -46,6 +46,7 @@ automatically communicate with the API to remove and add data to the database.
 
 Contributors names
 
+* Tyler Muchow
 * Dylan Kraft
 * Khalid Mohamed
 * Thomas Marrinan
